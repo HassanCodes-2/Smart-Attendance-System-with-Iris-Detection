@@ -1,5 +1,5 @@
 /* =====================================================
-   IrisSecure – Main JS
+   IrisSecure ï¿½ Main JS
    ===================================================== */
 
 // Active nav link
@@ -97,6 +97,10 @@ async function startCamera() {
 if (video) startCamera();
 
 function captureImage() {
+    if (!video.videoWidth || !video.videoHeight) {
+        showToast('Camera is not ready yet. Please wait a moment.', 'error');
+        return null;
+    }
     const ctx = canvas.getContext('2d');
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
@@ -117,8 +121,41 @@ function showAnnotatedPreview(b64, isSuccess) {
     setTimeout(() => container.remove(), 4500);
 }
 
-// Capture button
-if (captureBtn) {
+// Form progress stepper (register page)
+function setStep(stepNum) {
+    const steps = [null,
+        document.getElementById('fp1'),
+        document.getElementById('fp2'),
+        document.getElementById('fp3')
+    ];
+    const lines = [null,
+        document.getElementById('fp-line1'),
+        document.getElementById('fp-line2')
+    ];
+    steps.forEach((el, i) => {
+        if (!el) return;
+        el.classList.remove('active', 'done');
+        if (i < stepNum)  { el.classList.add('done');   el.querySelector('.fp-dot').innerHTML = '<i class="fa-solid fa-check" style="font-size:0.65rem"></i>'; }
+        if (i === stepNum) el.classList.add('active');
+    });
+    lines.forEach((el, i) => {
+        if (!el) return;
+        el.classList.toggle('done', i < stepNum);
+    });
+}
+
+// Advance step 1â†’2 when all fields have content
+if (document.getElementById('fp1')) {
+    const fieldInputs = [userIdInput, nameInput, departmentInput].filter(Boolean);
+    const checkFields = () => {
+        const allFilled = fieldInputs.every(f => f.value.trim().length > 0);
+        // Only advance if currently on step 1
+        const fp1 = document.getElementById('fp1');
+        if (allFilled && fp1 && fp1.classList.contains('active')) setStep(2);
+        if (!allFilled && fp1 && !fp1.classList.contains('active') && !fp1.classList.contains('done')) setStep(1);
+    };
+    fieldInputs.forEach(f => f.addEventListener('input', checkFields));
+}
     captureBtn.addEventListener('click', async () => {
         const pageType = captureBtn.dataset.type;
 
@@ -143,7 +180,7 @@ if (captureBtn) {
 
         const originalHTML = captureBtn.innerHTML;
         captureBtn.disabled = true;
-        captureBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing…';
+        captureBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processingï¿½';
 
         try {
             const res = await fetch(pageType === 'register' ? '/register' : '/attendance', {
@@ -163,9 +200,13 @@ if (captureBtn) {
                 showToast(msg, 'success');
                 if (result.annotated_image) showAnnotatedPreview(result.annotated_image, true);
                 if (pageType === 'register') {
-                    userIdInput.value = '';
-                    nameInput.value = '';
-                    departmentInput.value = '';
+                    setStep(3); // advance to Done
+                    setTimeout(() => {
+                        userIdInput.value = '';
+                        nameInput.value = '';
+                        departmentInput.value = '';
+                        setStep(1); // reset for next registration
+                    }, 3000);
                 }
             } else {
                 showToast(result.message, 'error');
