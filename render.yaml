@@ -3,7 +3,7 @@ services:
     name: smart-attendance-system
     runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: python app.py
+    startCommand: gunicorn app:app
     disk:
       name: iris-db
       mountPath: /data
