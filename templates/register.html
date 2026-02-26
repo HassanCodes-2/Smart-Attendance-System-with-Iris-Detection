@@ -2,21 +2,54 @@
 
 {% block content %}
 <div class="card">
-    <h2><i class="fa-solid fa-user-shield"></i> User Registration</h2>
-    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Align your eyes within the frame.</p>
+    <div class="form-progress">
+        <div class="fp-step done" id="fp1">
+            <div class="fp-dot"><i class="fa-solid fa-check" style="font-size:0.65rem"></i></div>
+            <span>Details</span>
+        </div>
+        <div class="fp-line" id="fp-line1"></div>
+        <div class="fp-step active" id="fp2">
+            <div class="fp-dot">2</div>
+            <span>Capture</span>
+        </div>
+        <div class="fp-line"></div>
+        <div class="fp-step" id="fp3">
+            <div class="fp-dot">3</div>
+            <span>Done</span>
+        </div>
+    </div>
 
-    <input type="text" id="userIdInput" placeholder="Enter ID (e.g. EMP001)" autocomplete="off">
-    <input type="text" id="nameInput" placeholder="Enter Full Name" autocomplete="off">
-    <input type="text" id="departmentInput" placeholder="Enter Department" autocomplete="off">
+    <div class="card-title"><i class="fa-solid fa-user-shield"></i> Register User</div>
+    <p class="card-sub">Fill in your details and capture your iris.</p>
+
+    <div class="input-group">
+        <input type="text" id="userIdInput" placeholder="Employee / Student ID" autocomplete="off">
+        <i class="fa-solid fa-id-badge"></i>
+    </div>
+    <div class="input-group">
+        <input type="text" id="nameInput" placeholder="Full Name" autocomplete="off">
+        <i class="fa-solid fa-user"></i>
+    </div>
+    <div class="input-group mb-2">
+        <input type="text" id="departmentInput" placeholder="Department" autocomplete="off">
+        <i class="fa-solid fa-building"></i>
+    </div>
+
+    <div class="tip-box">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>Position your face in front of the camera and look directly at the lens. Ensure good lighting for the best result.</span>
+    </div>
 
     <div class="camera-wrapper">
         <video id="video" autoplay playsinline></video>
-        <canvas id="canvas" style="display: none;"></canvas>
+        <canvas id="canvas" style="display:none"></canvas>
         <div class="scan-overlay"></div>
+        <div class="scan-corners"></div>
+        <div class="scan-line"></div>
     </div>
 
-    <button id="captureBtn" data-type="register" style="width: 100%; justify-content: center;">
-        <i class="fa-solid fa-camera"></i> Capture & Register
+    <button id="captureBtn" data-type="register" class="btn-full">
+        <i class="fa-solid fa-camera"></i> Capture &amp; Register
     </button>
 </div>
 {% endblock %}

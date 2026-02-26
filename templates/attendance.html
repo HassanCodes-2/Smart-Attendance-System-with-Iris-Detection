@@ -2,20 +2,28 @@
 
 {% block content %}
 <div class="card">
-    <h2><i class="fa-solid fa-eye"></i> Mark Attendance</h2>
-    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Look closer to the camera for optimal scanning.</p>
+    <div class="card-title"><i class="fa-solid fa-eye"></i> Mark Attendance</div>
+    <p class="card-sub">Look directly at the camera to authenticate your identity.</p>
+
+    <div class="tip-box">
+        <i class="fa-solid fa-lightbulb"></i>
+        <span>Ensure good lighting and hold still. The scan takes less than a second once captured.</span>
+    </div>
 
     <div class="camera-wrapper">
         <video id="video" autoplay playsinline></video>
-        <canvas id="canvas" style="display: none;"></canvas>
+        <canvas id="canvas" style="display:none"></canvas>
         <div class="scan-overlay"></div>
+        <div class="scan-corners"></div>
+        <div class="scan-line"></div>
     </div>
 
-    <button id="captureBtn" data-type="attendance"
-        style="width: 100%; justify-content: center; background-image: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);">
+    <div class="text-center mb-2" style="font-size:0.8rem;color:var(--muted)">
+        <i class="fa-regular fa-clock"></i> <span id="live-clock"></span>
+    </div>
+
+    <button id="captureBtn" data-type="attendance" class="btn-full btn-purple">
         <i class="fa-solid fa-check-to-slot"></i> Authenticate
     </button>
-
-    <div style="margin-top: 1rem;"></div>
 </div>
 {% endblock %}

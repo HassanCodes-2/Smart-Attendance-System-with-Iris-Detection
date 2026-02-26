@@ -1,43 +1,131 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div style="width: 100%; max-width: 900px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <h2><i class="fa-solid fa-list-check"></i> Attendance Logs</h2>
-        <button onclick="window.location.reload()" style="padding: 8px 16px; font-size: 0.9rem;">
-            <i class="fa-solid fa-rotate-right"></i> Refresh
-        </button>
+<div class="admin-wrapper">
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon purple"><i class="fa-solid fa-clipboard-list"></i></div>
+            <div>
+                <div class="stat-value" id="stat-total">{{ logs|length }}</div>
+                <div class="stat-label">Total Records</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="fa-solid fa-user-check"></i></div>
+            <div>
+                <div class="stat-value" id="stat-unique">{{ logs|map(attribute='name')|list|unique|list|length }}</div>
+                <div class="stat-label">Unique Users</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon orange"><i class="fa-regular fa-calendar-check"></i></div>
+            <div>
+                <div class="stat-value" id="stat-today">—</div>
+                <div class="stat-label">Today</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon pink"><i class="fa-solid fa-circle-check"></i></div>
+            <div>
+                <div class="stat-value">100%</div>
+                <div class="stat-label">Verified</div>
+            </div>
+        </div>
     </div>
 
+    <!-- Header + tools -->
+    <div class="admin-header">
+        <h2><i class="fa-solid fa-table-list"></i> Attendance Logs</h2>
+        <div class="admin-tools">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="search" id="log-search" placeholder="Search name or ID…">
+            </div>
+            <button class="btn-sm btn-secondary" onclick="exportCSV()">
+                <i class="fa-solid fa-file-arrow-down"></i> Export CSV
+            </button>
+            <button class="btn-sm" onclick="window.location.reload()">
+                <i class="fa-solid fa-rotate-right"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Table -->
     <div class="table-container">
-        <table>
+        <table id="logs-table">
             <thead>
                 <tr>
-                    <th><i class="fa-solid fa-hashtag"></i> ID</th>
-                    <th><i class="fa-solid fa-user"></i> User Name</th>
+                    <th>#</th>
+                    <th><i class="fa-solid fa-user"></i> Name</th>
+                    <th><i class="fa-solid fa-id-badge"></i> User ID</th>
                     <th><i class="fa-regular fa-clock"></i> Timestamp</th>
                     <th>Status</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="logs-body">
                 {% for log in logs %}
                 <tr>
-                    <td>#{{ log.id }}</td>
-                    <td style="font-weight: 600; color: white;">{{ log.name }}</td>
+                    <td style="color:var(--muted);font-size:0.8rem">{{ loop.index }}</td>
+                    <td class="td-name">{{ log.name }}</td>
+                    <td class="td-id">{{ log.user_id if log.user_id else '—' }}</td>
                     <td>{{ log.timestamp }}</td>
-                    <td><span
-                            style="padding: 4px 8px; border-radius: 4px; background: rgba(34, 197, 94, 0.1); color: var(--success-color); font-size: 0.8rem;">Verified</span>
-                    </td>
+                    <td><span class="badge badge-success"><i class="fa-solid fa-circle-check" style="font-size:0.7rem"></i> Verified</span></td>
                 </tr>
                 {% else %}
-                <tr>
-                    <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-                        No attendance records found.
-                    </td>
+                <tr class="no-data">
+                    <td colspan="5"><i class="fa-solid fa-inbox" style="font-size:2rem;display:block;margin-bottom:0.5rem;opacity:0.4"></i>No attendance records found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+
+    <p class="text-center mt-2" style="font-size:0.8rem" id="filter-count"></p>
 </div>
+
+<script>
+// Today count
+(function() {
+    const today = new Date().toISOString().slice(0,10);
+    const rows = document.querySelectorAll('#logs-body tr:not(.no-data)');
+    let count = 0;
+    rows.forEach(r => { if (r.cells[3] && r.cells[3].textContent.includes(today)) count++; });
+    document.getElementById('stat-today').textContent = count;
+})();
+
+// Search / filter
+const searchInput = document.getElementById('log-search');
+const logsBody = document.getElementById('logs-body');
+const filterCount = document.getElementById('filter-count');
+
+searchInput.addEventListener('input', function() {
+    const q = this.value.toLowerCase().trim();
+    const rows = logsBody.querySelectorAll('tr:not(.no-data)');
+    let visible = 0;
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const show = !q || text.includes(q);
+        row.classList.toggle('hidden', !show);
+        if (show) visible++;
+    });
+    filterCount.textContent = q ? `Showing ${visible} of ${rows.length} records` : '';
+});
+
+// CSV export
+function exportCSV() {
+    const rows = logsBody.querySelectorAll('tr:not(.no-data):not(.hidden)');
+    if (!rows.length) return;
+    let csv = 'No,Name,User ID,Timestamp,Status\n';
+    rows.forEach(r => {
+        const cells = [...r.querySelectorAll('td')];
+        csv += cells.map((c,i) => i===4 ? 'Verified' : '"'+c.textContent.trim()+'"').join(',') + '\n';
+    });
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = 'attendance_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+}
+</script>
 {% endblock %}

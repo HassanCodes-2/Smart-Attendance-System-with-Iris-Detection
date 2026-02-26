@@ -59,7 +59,7 @@ def mark_attendance(user_id):
 def get_attendance_logs():
     conn = get_db_connection()
     query = '''
-        SELECT a.id, u.name, a.timestamp
+        SELECT a.id, u.name, u.user_id, a.timestamp
         FROM attendance a
         JOIN users u ON a.user_id = u.id
         ORDER BY a.timestamp DESC

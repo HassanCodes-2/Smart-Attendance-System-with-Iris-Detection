@@ -1,41 +1,45 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div style="text-align: center; max-width: 800px;">
-    <h1
-        style="font-size: 3rem; margin-bottom: 0.5rem; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-        Secure Access Control</h1>
-    <p style="color: var(--text-secondary); font-size: 1.25rem; margin-bottom: 3rem;">
-        Next-generation biometric attendance system using iris recognition technology.
-    </p>
+<div class="hero">
+    <div class="hero-eyebrow">
+        <i class="fa-solid fa-shield-halved"></i> Biometric Attendance System
+    </div>
+    <h1>Secure Access<br>Powered by Iris</h1>
+    <p>Next-generation biometric attendance using iris recognition. Fast, accurate, and contact-free identity verification.</p>
+    <div class="hero-actions">
+        <a href="/register" class="btn btn-full" style="max-width:220px">
+            <i class="fa-solid fa-user-plus"></i> Register
+        </a>
+        <a href="/attendance" class="btn btn-purple btn-full" style="max-width:220px">
+            <i class="fa-solid fa-eye"></i> Mark Attendance
+        </a>
+    </div>
+</div>
 
-    <div style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;">
-        <!-- Card 1 -->
-        <div class="card" style="flex: 1; min-width: 250px; text-align: left;">
-            <div style="font-size: 2rem; color: var(--accent-color); margin-bottom: 1rem;">
-                <i class="fa-solid fa-user-plus"></i>
-            </div>
-            <h3>New User?</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Register your biometric data securely in
-                seconds.</p>
-            <a href="/register" style="text-decoration: none;">
-                <button style="width: 100%;">Register Now <i class="fa-solid fa-arrow-right"></i></button>
-            </a>
-        </div>
+<div class="feature-grid">
+    <div class="feature-card fc-indigo">
+        <div class="fc-glow"></div>
+        <div class="fc-icon"><i class="fa-solid fa-user-plus"></i></div>
+        <h3>Quick Registration</h3>
+        <p>Enroll your iris biometric in under 30 seconds. Your data is stored securely and used only for identity verification.</p>
+        <a href="/register" class="btn btn-sm"><i class="fa-solid fa-arrow-right"></i> Get Started</a>
+    </div>
 
-        <!-- Card 2 -->
-        <div class="card" style="flex: 1; min-width: 250px; text-align: left;">
-            <div style="font-size: 2rem; color: #a855f7; margin-bottom: 1rem;">
-                <i class="fa-solid fa-fingerprint"></i>
-            </div>
-            <h3>Mark Attendance</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Quickly scan your eye to verify your
-                identity.</p>
-            <a href="/attendance" style="text-decoration: none;">
-                <button style="width: 100%; background-image: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);">Scan
-                    Now <i class="fa-solid fa-expand"></i></button>
-            </a>
-        </div>
+    <div class="feature-card fc-purple">
+        <div class="fc-glow"></div>
+        <div class="fc-icon"><i class="fa-solid fa-eye"></i></div>
+        <h3>Iris Recognition</h3>
+        <p>Advanced ORB-based feature matching delivers fast and reliable identity verification — no PINs or cards needed.</p>
+        <a href="/attendance" class="btn btn-sm btn-purple"><i class="fa-solid fa-arrow-right"></i> Scan Now</a>
+    </div>
+
+    <div class="feature-card fc-pink">
+        <div class="fc-glow"></div>
+        <div class="fc-icon"><i class="fa-solid fa-table-list"></i></div>
+        <h3>Live Admin Logs</h3>
+        <p>Track every attendance event in real-time. Search, filter, and export logs from the admin dashboard.</p>
+        <a href="/admin" class="btn btn-sm btn-purple" style="background:var(--grad-pink)"><i class="fa-solid fa-arrow-right"></i> View Logs</a>
     </div>
 </div>
 {% endblock %}
