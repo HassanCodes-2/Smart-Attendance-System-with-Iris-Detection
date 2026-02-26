@@ -1,220 +1,214 @@
-/* =====================================================
-   IrisSecure � Main JS
-   ===================================================== */
+﻿/* IrisSecure - Main JS */
 
-// Active nav link
+// Active nav highlight
 (function () {
-    const path = window.location.pathname;
-    document.querySelectorAll('.nav-link').forEach(link => {
-        const href = link.getAttribute('href');
-        const isHome = href === '/' && path === '/';
-        const isOther = href !== '/' && path.startsWith(href);
-        if (isHome || isOther) link.classList.add('active');
+    var path = window.location.pathname;
+    document.querySelectorAll(".nav-link").forEach(function(link) {
+        var href = link.getAttribute("href");
+        var isHome  = href === "/" && path === "/";
+        var isOther = href !== "/" && path.startsWith(href);
+        if (isHome || isOther) link.classList.add("active");
     });
 })();
 
 // Hamburger / mobile nav
-const hamburger = document.getElementById('hamburger');
-const mobileOverlay = document.getElementById('mobile-overlay');
+var hamburger    = document.getElementById("hamburger");
+var mobileOverlay = document.getElementById("mobile-overlay");
 
 if (hamburger && mobileOverlay) {
-    // Clone nav links into mobile overlay
-    document.querySelectorAll('#main-nav .nav-link').forEach(link => {
-        const clone = link.cloneNode(true);
-        mobileOverlay.appendChild(clone);
+    document.querySelectorAll("#main-nav .nav-link").forEach(function(link) {
+        mobileOverlay.appendChild(link.cloneNode(true));
     });
 
-    hamburger.addEventListener('click', () => {
-        const open = mobileOverlay.classList.toggle('open');
-        hamburger.classList.toggle('open', open);
-        document.body.style.overflow = open ? 'hidden' : '';
+    hamburger.addEventListener("click", function() {
+        var open = mobileOverlay.classList.toggle("open");
+        hamburger.classList.toggle("open", open);
+        document.body.style.overflow = open ? "hidden" : "";
     });
 
-    // Close on link click
-    mobileOverlay.querySelectorAll('.nav-link').forEach(l => {
-        l.addEventListener('click', () => {
-            mobileOverlay.classList.remove('open');
-            hamburger.classList.remove('open');
-            document.body.style.overflow = '';
+    mobileOverlay.querySelectorAll(".nav-link").forEach(function(l) {
+        l.addEventListener("click", function() {
+            mobileOverlay.classList.remove("open");
+            hamburger.classList.remove("open");
+            document.body.style.overflow = "";
         });
     });
 }
 
-// Live clock (attendance page)
-const clockEl = document.getElementById('live-clock');
+// Live clock
+var clockEl = document.getElementById("live-clock");
 if (clockEl) {
-    const updateClock = () => {
+    function updateClock() {
         clockEl.textContent = new Date().toLocaleString(undefined, {
-            weekday: 'short', year: 'numeric', month: 'short',
-            day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
+            weekday: "short", year: "numeric", month: "short",
+            day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit"
         });
-    };
+    }
     updateClock();
     setInterval(updateClock, 1000);
 }
 
-// Toast notification system
-const toastContainer = document.createElement('div');
-toastContainer.className = 'toast-container';
+// Toast
+var toastContainer = document.createElement("div");
+toastContainer.className = "toast-container";
 document.body.appendChild(toastContainer);
 
-function showToast(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-
-    const icons = { success: 'fa-circle-check', error: 'fa-triangle-exclamation', info: 'fa-circle-info' };
-    const icon = icons[type] || icons.info;
-
-    toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${message}</span>`;
+function showToast(message, type) {
+    type = type || "info";
+    var toast = document.createElement("div");
+    toast.className = "toast " + type;
+    var icons = { success: "fa-circle-check", error: "fa-triangle-exclamation", info: "fa-circle-info" };
+    var icon  = icons[type] || icons.info;
+    toast.innerHTML = "<i class=\"fa-solid " + icon + "\"></i><span>" + message + "</span>";
     toastContainer.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.animation = 'toastOut 0.3s forwards';
-        toast.addEventListener('animationend', () => toast.remove());
+    setTimeout(function() {
+        toast.style.animation = "toastOut 0.3s forwards";
+        toast.addEventListener("animationend", function() { toast.remove(); });
     }, 4500);
 }
 
-// Camera helpers
-const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
-const captureBtn = document.getElementById('captureBtn');
-const nameInput = document.getElementById('nameInput');
-const userIdInput = document.getElementById('userIdInput');
-const departmentInput = document.getElementById('departmentInput');
+// Camera
+var video         = document.getElementById("video");
+var canvas        = document.getElementById("canvas");
+var captureBtn    = document.getElementById("captureBtn");
+var nameInput     = document.getElementById("nameInput");
+var userIdInput   = document.getElementById("userIdInput");
+var deptInput     = document.getElementById("departmentInput");
+var stream        = null;
 
-let stream = null;
-
-async function startCamera() {
-    try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+function startCamera() {
+    navigator.mediaDevices.getUserMedia({ video: true }).then(function(s) {
+        stream = s;
         if (video) video.srcObject = stream;
-    } catch (err) {
-        console.error('Camera error:', err);
-        showToast('Camera access denied or unavailable.', 'error');
-    }
+    }).catch(function(err) {
+        console.error("Camera error:", err);
+        showToast("Camera access denied or unavailable.", "error");
+    });
 }
 
 if (video) startCamera();
 
 function captureImage() {
     if (!video.videoWidth || !video.videoHeight) {
-        showToast('Camera is not ready yet. Please wait a moment.', 'error');
+        showToast("Camera is not ready yet. Please wait.", "error");
         return null;
     }
-    const ctx = canvas.getContext('2d');
-    canvas.width = video.videoWidth;
+    var ctx = canvas.getContext("2d");
+    canvas.width  = video.videoWidth;
     canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL('image/jpeg');
+    return canvas.toDataURL("image/jpeg");
 }
 
 function showAnnotatedPreview(b64, isSuccess) {
-    const container = Object.assign(document.createElement('div'), {
-        style: 'position:fixed;bottom:80px;right:20px;width:160px;z-index:9998;animation:toastIn 0.3s forwards'
-    });
-    const img = new Image();
-    img.src = 'data:image/jpeg;base64,' + b64;
-    img.style.cssText = `width:100%;border-radius:10px;border:2px solid var(--${isSuccess ? 'success' : 'error'});
-        box-shadow:0 0 20px rgba(0,0,0,0.6);transform:scaleX(-1);display:block`;
-    container.appendChild(img);
-    document.body.appendChild(container);
-    setTimeout(() => container.remove(), 4500);
+    var wrap = document.createElement("div");
+    wrap.style.cssText = "position:fixed;bottom:80px;right:20px;width:160px;z-index:9998;animation:toastIn 0.3s forwards";
+    var img = new Image();
+    img.src = "data:image/jpeg;base64," + b64;
+    var borderColor = isSuccess ? "var(--success)" : "var(--error)";
+    img.style.cssText = "width:100%;border-radius:10px;border:2px solid " + borderColor + ";box-shadow:0 0 20px rgba(0,0,0,0.6);transform:scaleX(-1);display:block";
+    wrap.appendChild(img);
+    document.body.appendChild(wrap);
+    setTimeout(function() { wrap.remove(); }, 4500);
 }
 
-// Form progress stepper (register page)
+// Form progress stepper (register page only)
 function setStep(stepNum) {
-    const steps = [null,
-        document.getElementById('fp1'),
-        document.getElementById('fp2'),
-        document.getElementById('fp3')
+    var steps = [null,
+        document.getElementById("fp1"),
+        document.getElementById("fp2"),
+        document.getElementById("fp3")
     ];
-    const lines = [null,
-        document.getElementById('fp-line1'),
-        document.getElementById('fp-line2')
+    var lines = [null,
+        document.getElementById("fp-line1"),
+        document.getElementById("fp-line2")
     ];
-    steps.forEach((el, i) => {
+    steps.forEach(function(el, i) {
         if (!el) return;
-        el.classList.remove('active', 'done');
-        if (i < stepNum)  { el.classList.add('done');   el.querySelector('.fp-dot').innerHTML = '<i class="fa-solid fa-check" style="font-size:0.65rem"></i>'; }
-        if (i === stepNum) el.classList.add('active');
+        el.classList.remove("active", "done");
+        if (i < stepNum) {
+            el.classList.add("done");
+            el.querySelector(".fp-dot").innerHTML = "<i class=\"fa-solid fa-check\" style=\"font-size:0.65rem\"></i>";
+        }
+        if (i === stepNum) el.classList.add("active");
     });
-    lines.forEach((el, i) => {
+    lines.forEach(function(el, i) {
         if (!el) return;
-        el.classList.toggle('done', i < stepNum);
+        el.classList.toggle("done", i < stepNum);
     });
 }
 
-// Advance step 1→2 when all fields have content
-if (document.getElementById('fp1')) {
-    const fieldInputs = [userIdInput, nameInput, departmentInput].filter(Boolean);
-    const checkFields = () => {
-        const allFilled = fieldInputs.every(f => f.value.trim().length > 0);
-        // Only advance if currently on step 1
-        const fp1 = document.getElementById('fp1');
-        if (allFilled && fp1 && fp1.classList.contains('active')) setStep(2);
-        if (!allFilled && fp1 && !fp1.classList.contains('active') && !fp1.classList.contains('done')) setStep(1);
-    };
-    fieldInputs.forEach(f => f.addEventListener('input', checkFields));
+if (document.getElementById("fp1")) {
+    var fieldInputs = [userIdInput, nameInput, deptInput].filter(Boolean);
+    function checkFields() {
+        var allFilled = fieldInputs.every(function(f) { return f.value.trim().length > 0; });
+        var fp1 = document.getElementById("fp1");
+        if (allFilled && fp1 && fp1.classList.contains("active")) setStep(2);
+        if (!allFilled && fp1 && !fp1.classList.contains("active") && !fp1.classList.contains("done")) setStep(1);
+    }
+    fieldInputs.forEach(function(f) { f.addEventListener("input", checkFields); });
 }
-    captureBtn.addEventListener('click', async () => {
-        const pageType = captureBtn.dataset.type;
 
-        if (pageType === 'register') {
-            const userId = userIdInput?.value.trim();
-            const name = nameInput?.value.trim();
-            const dept = departmentInput?.value.trim();
-            if (!userId) { showToast('Please enter your ID.', 'error'); userIdInput?.focus(); return; }
-            if (!name)   { showToast('Please enter your name.', 'error'); nameInput?.focus(); return; }
-            if (!dept)   { showToast('Please enter your department.', 'error'); departmentInput?.focus(); return; }
+// Capture button
+if (captureBtn) {
+    captureBtn.addEventListener("click", async function() {
+        var pageType = captureBtn.dataset.type;
+
+        if (pageType === "register") {
+            var uid  = userIdInput ? userIdInput.value.trim() : "";
+            var name = nameInput   ? nameInput.value.trim()   : "";
+            var dept = deptInput   ? deptInput.value.trim()   : "";
+            if (!uid)  { showToast("Please enter your ID.", "error");         if (userIdInput) userIdInput.focus();   return; }
+            if (!name) { showToast("Please enter your name.", "error");       if (nameInput)   nameInput.focus();     return; }
+            if (!dept) { showToast("Please enter your department.", "error"); if (deptInput)   deptInput.focus();     return; }
         }
 
-        const imageData = captureImage();
+        var imageData = captureImage();
         if (!imageData) return;
 
-        const payload = { image: imageData };
-        if (pageType === 'register') {
-            payload.user_id   = userIdInput.value.trim();
+        var payload = { image: imageData };
+        if (pageType === "register") {
+            payload.user_id    = userIdInput.value.trim();
             payload.name       = nameInput.value.trim();
-            payload.department = departmentInput.value.trim();
+            payload.department = deptInput.value.trim();
         }
 
-        const originalHTML = captureBtn.innerHTML;
+        var originalHTML = captureBtn.innerHTML;
         captureBtn.disabled = true;
-        captureBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing�';
+        captureBtn.innerHTML = "<i class=\"fa-solid fa-spinner fa-spin\"></i> Processing...";
 
         try {
-            const res = await fetch(pageType === 'register' ? '/register' : '/attendance', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            var res = await fetch(pageType === "register" ? "/register" : "/attendance", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
-
-            const result = await res.json();
+            var result = await res.json();
 
             if (result.success) {
-                let msg = result.message;
+                var msg = result.message;
                 if (result.score) {
-                    const pct = Math.min(Math.round((result.score / 50) * 100), 100);
-                    msg += ` (${pct}% match)`;
+                    var pct = Math.min(Math.round((result.score / 50) * 100), 100);
+                    msg += " (" + pct + "% match)";
                 }
-                showToast(msg, 'success');
+                showToast(msg, "success");
                 if (result.annotated_image) showAnnotatedPreview(result.annotated_image, true);
-                if (pageType === 'register') {
-                    setStep(3); // advance to Done
-                    setTimeout(() => {
-                        userIdInput.value = '';
-                        nameInput.value = '';
-                        departmentInput.value = '';
-                        setStep(1); // reset for next registration
+                if (pageType === "register") {
+                    setStep(3);
+                    setTimeout(function() {
+                        if (userIdInput) userIdInput.value = "";
+                        if (nameInput)   nameInput.value   = "";
+                        if (deptInput)   deptInput.value   = "";
+                        setStep(1);
                     }, 3000);
                 }
             } else {
-                showToast(result.message, 'error');
+                showToast(result.message, "error");
                 if (result.annotated_image) showAnnotatedPreview(result.annotated_image, false);
             }
         } catch (err) {
             console.error(err);
-            showToast('Server connection error.', 'error');
+            showToast("Server connection error.", "error");
         } finally {
             captureBtn.disabled = false;
             captureBtn.innerHTML = originalHTML;
