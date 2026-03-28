@@ -5,7 +5,6 @@ import os
 
 app = Flask(__name__)
 
-# Initialize DB only if it doesn't already exist (preserves data across restarts)
 if not os.path.exists(DATABASE):
     print(" * Initializing database for the first time...")
     init_db()

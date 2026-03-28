@@ -3,7 +3,6 @@ import pickle
 import os
 from datetime import datetime
 
-# Use /data directory if it exists (Render persistent disk), otherwise local
 DATABASE = os.path.join('/data', 'iris_system.db') if os.path.isdir('/data') else 'iris_system.db'
 
 def get_db_connection():
@@ -19,7 +18,7 @@ def init_db():
 
 def add_user(user_id, name, department, features):
     conn = get_db_connection()
-    # Serialize features (numpy array) to store in BLOB
+
     features_blob = pickle.dumps(features)
     cur = conn.cursor()
     cur.execute('INSERT INTO users (user_id, name, department, iris_features) VALUES (?, ?, ?, ?)',
@@ -36,7 +35,7 @@ def get_all_users():
     
     user_list = []
     for user in users:
-        # Deserialize features
+
         features = pickle.loads(user['iris_features'])
         user_list.append({
             'id': user['id'],
@@ -49,8 +48,7 @@ def get_all_users():
 
 def mark_attendance(user_id):
     conn = get_db_connection()
-    # Check if already marked for today to avoid duplicate spam (optional, but good practice)
-    # For simplicity, we just insert.
+
     cur = conn.cursor()
     cur.execute('INSERT INTO attendance (user_id) VALUES (?)', (user_id,))
     conn.commit()

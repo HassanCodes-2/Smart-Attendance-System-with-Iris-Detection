@@ -3,7 +3,6 @@
 {% block content %}
 <div class="admin-wrapper">
 
-    <!-- Stats -->
     <div class="stats-row">
         <div class="stat-card">
             <div class="stat-icon purple"><i class="fa-solid fa-clipboard-list"></i></div>
@@ -35,7 +34,6 @@
         </div>
     </div>
 
-    <!-- Header + tools -->
     <div class="admin-header">
         <h2><i class="fa-solid fa-table-list"></i> Attendance Logs</h2>
         <div class="admin-tools">
@@ -52,7 +50,6 @@
         </div>
     </div>
 
-    <!-- Table -->
     <div class="table-container">
         <table id="logs-table">
             <thead>
@@ -86,45 +83,43 @@
 </div>
 
 <script>
-// Today count
 (function() {
-    const today = new Date().toISOString().slice(0,10);
-    const rows = document.querySelectorAll('#logs-body tr:not(.no-data)');
-    let count = 0;
-    rows.forEach(r => { if (r.cells[3] && r.cells[3].textContent.includes(today)) count++; });
+    var today = new Date().toISOString().slice(0, 10);
+    var rows = document.querySelectorAll('#logs-body tr:not(.no-data)');
+    var count = 0;
+    rows.forEach(function(r) {
+        if (r.cells[3] && r.cells[3].textContent.includes(today)) count++;
+    });
     document.getElementById('stat-today').textContent = count;
 })();
 
-// Search / filter
-const searchInput = document.getElementById('log-search');
-const logsBody = document.getElementById('logs-body');
-const filterCount = document.getElementById('filter-count');
+var searchInput = document.getElementById('log-search');
+var logsBody = document.getElementById('logs-body');
+var filterCount = document.getElementById('filter-count');
 
 searchInput.addEventListener('input', function() {
-    const q = this.value.toLowerCase().trim();
-    const rows = logsBody.querySelectorAll('tr:not(.no-data)');
-    let visible = 0;
-    rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        const show = !q || text.includes(q);
+    var q = this.value.toLowerCase().trim();
+    var rows = logsBody.querySelectorAll('tr:not(.no-data)');
+    var visible = 0;
+    rows.forEach(function(row) {
+        var show = !q || row.textContent.toLowerCase().includes(q);
         row.classList.toggle('hidden', !show);
         if (show) visible++;
     });
-    filterCount.textContent = q ? `Showing ${visible} of ${rows.length} records` : '';
+    filterCount.textContent = q ? 'Showing ' + visible + ' of ' + rows.length + ' records' : '';
 });
 
-// CSV export
 function exportCSV() {
-    const rows = logsBody.querySelectorAll('tr:not(.no-data):not(.hidden)');
+    var rows = logsBody.querySelectorAll('tr:not(.no-data):not(.hidden)');
     if (!rows.length) return;
-    let csv = 'No,Name,User ID,Timestamp,Status\n';
-    rows.forEach(r => {
-        const cells = [...r.querySelectorAll('td')];
-        csv += cells.map((c,i) => i===4 ? 'Verified' : '"'+c.textContent.trim()+'"').join(',') + '\n';
+    var csv = 'No,Name,User ID,Timestamp,Status\n';
+    rows.forEach(function(r) {
+        var cells = Array.from(r.querySelectorAll('td'));
+        csv += cells.map(function(c, i) { return i === 4 ? 'Verified' : '"' + c.textContent.trim() + '"'; }).join(',') + '\n';
     });
-    const a = document.createElement('a');
+    var a = document.createElement('a');
     a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-    a.download = 'attendance_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.download = 'attendance_' + new Date().toISOString().slice(0, 10) + '.csv';
     a.click();
 }
 </script>
