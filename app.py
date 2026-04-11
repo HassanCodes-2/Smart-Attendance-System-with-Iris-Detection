@@ -1,15 +1,15 @@
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from database import init_db, add_user, mark_attendance, get_all_users, get_attendance_logs, DATABASE
 from iris_recognition import decode_image, extract_features, verify_user
 from email_service import send_attendance_email
 import os
 
-# Load .env file if python-dotenv is available
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass
 
 app = Flask(__name__)
 
