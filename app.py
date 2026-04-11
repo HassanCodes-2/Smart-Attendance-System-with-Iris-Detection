@@ -78,10 +78,12 @@ def attendance():
 
             # Send email to parent if one is on file (fire-and-forget)
             if matched_user.get('parent_email'):
-                send_attendance_email(
-                    parent_email=matched_user['parent_email'],
-                    student_name=matched_user['name']
-                )
+                import threading
+                threading.Thread(
+                    target=send_attendance_email,
+                    args=(matched_user['parent_email'], matched_user['name']),
+                    daemon=True
+                ).start()
 
             return jsonify({
                 'success': True, 
