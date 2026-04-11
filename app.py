@@ -1,7 +1,15 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from database import init_db, add_user, mark_attendance, get_all_users, get_attendance_logs, DATABASE
 from iris_recognition import decode_image, extract_features, verify_user
+from email_service import send_attendance_email
 import os
+
+# Load .env file if python-dotenv is available
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 app = Flask(__name__)
 
@@ -24,6 +32,7 @@ def register():
     user_id = data.get('user_id')
     name = data.get('name')
     department = data.get('department')
+    parent_email = data.get('parent_email') or None
     image_data = data.get('image')
     
     if not user_id or not name or not department or not image_data:
@@ -36,7 +45,7 @@ def register():
         if features is None:
              return jsonify({'success': False, 'message': 'No eye features detected. Try again.'}), 400
              
-        add_user(user_id, name, department, features)
+        add_user(user_id, name, department, features, parent_email)
         return jsonify({
             'success': True, 
             'message': 'User registered successfully!',
@@ -66,6 +75,14 @@ def attendance():
         
         if matched_user:
             mark_attendance(matched_user['id'])
+
+            # Send email to parent if one is on file (fire-and-forget)
+            if matched_user.get('parent_email'):
+                send_attendance_email(
+                    parent_email=matched_user['parent_email'],
+                    student_name=matched_user['name']
+                )
+
             return jsonify({
                 'success': True, 
                 'message': f"Welcome, {matched_user['name']}!", 

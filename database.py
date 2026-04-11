@@ -16,13 +16,15 @@ def init_db():
         conn.executescript(f.read())
     conn.close()
 
-def add_user(user_id, name, department, features):
+def add_user(user_id, name, department, features, parent_email=None):
     conn = get_db_connection()
 
     features_blob = pickle.dumps(features)
     cur = conn.cursor()
-    cur.execute('INSERT INTO users (user_id, name, department, iris_features) VALUES (?, ?, ?, ?)',
-                (user_id, name, department, features_blob))
+    cur.execute(
+        'INSERT INTO users (user_id, name, department, parent_email, iris_features) VALUES (?, ?, ?, ?, ?)',
+        (user_id, name, department, parent_email, features_blob)
+    )
     conn.commit()
     row_id = cur.lastrowid
     conn.close()
@@ -42,6 +44,7 @@ def get_all_users():
             'user_id': user['user_id'],
             'name': user['name'],
             'department': user['department'],
+            'parent_email': user['parent_email'],
             'features': features
         })
     return user_list

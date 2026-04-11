@@ -41,6 +41,7 @@ var captureBtn = document.getElementById("captureBtn");
 var nameInput  = document.getElementById("nameInput");
 var userIdInput = document.getElementById("userIdInput");
 var deptInput  = document.getElementById("departmentInput");
+var parentEmailInput = document.getElementById("parentEmailInput");
 var stream     = null;
 
 if (video) {
@@ -130,6 +131,7 @@ if (captureBtn) {
             payload.user_id    = userIdInput.value.trim();
             payload.name       = nameInput.value.trim();
             payload.department = deptInput.value.trim();
+            payload.parent_email = parentEmailInput ? parentEmailInput.value.trim() : "";
         }
 
         var originalHTML = captureBtn.innerHTML;
