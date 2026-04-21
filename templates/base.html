@@ -27,6 +27,11 @@
             <a href="/register" class="nav-link"><i class="fa-solid fa-user-plus"></i><span>Register</span></a>
             <a href="/attendance" class="nav-link"><i class="fa-solid fa-eye"></i><span>Attendance</span></a>
             <a href="/admin" class="nav-link"><i class="fa-solid fa-table-list"></i><span>Admin</span></a>
+            {% if current_user.is_authenticated %}
+            <a href="/admin/logout" class="nav-link" style="color:var(--error)">
+                <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
+            </a>
+            {% endif %}
         </nav>
     </header>
 
