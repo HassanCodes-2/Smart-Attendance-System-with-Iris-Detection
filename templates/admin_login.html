@@ -6,9 +6,16 @@
     <title>IrisSecure | Admin Login</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+
+    <!-- Modular CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/forms.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+
     <style>
         .login-wrap {
             min-height: 100vh;
@@ -18,8 +25,7 @@
             padding: 2rem 1rem;
         }
         .login-card {
-            width: 100%;
-            max-width: 400px;
+            width: 100%; max-width: 400px;
             background: var(--card);
             backdrop-filter: blur(24px);
             border: 1px solid var(--border);
@@ -27,13 +33,11 @@
             border-radius: var(--radius-lg);
             padding: 2.5rem;
             box-shadow: var(--shadow);
+            animation: fadeInUp 0.4s ease both;
         }
         .login-logo {
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-            margin-bottom: 2rem;
-            text-decoration: none;
+            display: flex; align-items: center; gap: 0.65rem;
+            margin-bottom: 2rem; text-decoration: none;
         }
         .login-logo .logo-icon {
             width: 40px; height: 40px;
@@ -43,73 +47,36 @@
             font-size: 1.1rem;
             box-shadow: 0 0 18px rgba(99,102,241,0.45);
         }
-        .login-logo span {
-            font-size: 1.4rem;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            color: var(--text);
-        }
-        .login-title {
-            font-size: 1.5rem;
-            font-weight: 800;
-            margin-bottom: 0.35rem;
-            color: var(--text);
-        }
-        .login-sub {
-            font-size: 0.9rem;
-            color: var(--muted);
-            margin-bottom: 2rem;
-        }
-        .login-field {
-            margin-bottom: 1rem;
-        }
+        .login-logo span { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.03em; color: var(--text); }
+        .login-title  { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.35rem; color: var(--text); }
+        .login-sub    { font-size: 0.9rem; color: var(--muted); margin-bottom: 2rem; }
+        .login-field  { margin-bottom: 1rem; }
         .login-field label {
-            display: block;
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            margin-bottom: 0.4rem;
+            display: block; font-size: 0.82rem; font-weight: 600;
+            color: var(--muted); text-transform: uppercase;
+            letter-spacing: 0.06em; margin-bottom: 0.4rem;
         }
-        .field-wrap {
-            position: relative;
-        }
+        .field-wrap { position: relative; }
         .field-wrap i {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--muted);
-            font-size: 0.9rem;
-            pointer-events: none;
+            position: absolute; left: 1rem; top: 50%;
+            transform: translateY(-50%); color: var(--muted);
+            font-size: 0.9rem; pointer-events: none;
         }
-        .field-wrap input {
-            padding-left: 2.75rem !important;
-            margin-bottom: 0;
-        }
+        .field-wrap input { padding-left: 2.75rem !important; margin-bottom: 0; }
         .error-box {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
+            display: flex; align-items: center; gap: 0.6rem;
             background: rgba(239,68,68,0.08);
             border: 1px solid rgba(239,68,68,0.25);
             border-radius: var(--radius-sm);
             padding: 0.75rem 1rem;
             margin-bottom: 1.25rem;
-            font-size: 0.875rem;
-            color: var(--error);
+            font-size: 0.875rem; color: var(--error);
         }
         .login-footer {
-            text-align: center;
-            margin-top: 1.5rem;
-            font-size: 0.8rem;
-            color: var(--muted);
+            text-align: center; margin-top: 1.5rem;
+            font-size: 0.8rem; color: var(--muted);
         }
-        .login-footer a {
-            color: #a5b4fc;
-            text-decoration: none;
-        }
+        .login-footer a { color: #a5b4fc; text-decoration: none; }
         .login-footer a:hover { text-decoration: underline; }
     </style>
 </head>
@@ -152,7 +119,7 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn-full">
+            <button type="submit" class="btn btn-full">
                 <i class="fa-solid fa-right-to-bracket"></i> Sign In
             </button>
         </form>
