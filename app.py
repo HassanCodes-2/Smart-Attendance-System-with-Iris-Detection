@@ -64,6 +64,9 @@ def student_required(f):
     def decorated(*args, **kwargs):
         if 'student_id' not in session:
             return redirect(url_for('student_login'))
+        if current_student() is None:
+            session.pop('student_id', None)
+            return redirect(url_for('student_login'))
         return f(*args, **kwargs)
     return decorated
 
@@ -71,7 +74,8 @@ def student_required(f):
 def current_student():
     uid = session.get('student_id')
     if uid:
-        return get_user_by_id(uid)
+        row = get_user_by_id(uid)
+        return dict(row) if row else None
     return None
 
 
@@ -396,7 +400,7 @@ def student_login():
         return redirect(url_for('student_dashboard'))
     error = None
     if request.method == 'POST':
-        uid      = request.form.get('user_id', '').strip()
+        uid      = request.form.get('user_id', '').strip().upper()
         password = request.form.get('password', '')
         user     = get_user_by_user_id(uid)
         if user and user['password'] and bcrypt.checkpw(password.encode(), user['password'].encode()):

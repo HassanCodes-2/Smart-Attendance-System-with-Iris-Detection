@@ -75,7 +75,7 @@
         </div>
         <div class="input-group">
             <select id="tt-day" style="padding:0.875rem 1rem;padding-left:2.75rem;background:rgba(8,13,26,0.7);border:1px solid var(--border-bright);color:var(--text);border-radius:var(--radius);width:100%;font-family:inherit;font-size:0.95rem">
-                {% for i, d in enumerate(days) %}<option value="{{ i }}">{{ d }}</option>{% endfor %}
+                {% for d in days %}<option value="{{ loop.index0 }}">{{ d }}</option>{% endfor %}
             </select>
             <i class="fa-solid fa-calendar"></i>
         </div>

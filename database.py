@@ -224,9 +224,9 @@ def get_attendance_summary():
 def get_chart_daily_trend(days=30):
     conn = get_db_connection()
     rows = conn.execute('''
-        SELECT DATE(timestamp) AS d, COUNT(*) AS cnt
+        SELECT DATE(timestamp) AS date, COUNT(*) AS cnt
         FROM attendance WHERE timestamp >= date('now', ?)
-        GROUP BY d ORDER BY d ASC
+        GROUP BY date ORDER BY date ASC
     ''', (f'-{days} days',)).fetchall()
     conn.close()
     return [dict(r) for r in rows]
