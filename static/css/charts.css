@@ -1,0 +1,79 @@
+/* ── Charts Grid ──────────────────────────────────────────────────────────── */
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    width: 100%;
+    margin-bottom: 1.75rem;
+}
+
+.chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-top-color: var(--border-bright);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.25s;
+}
+
+.chart-card:hover { border-color: rgba(99,102,241,0.25); }
+
+.chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+}
+
+.chart-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.chart-body { position: relative; }
+
+/* ── Skeleton Loader ──────────────────────────────────────────────────────── */
+
+.skeleton-block {
+    background: linear-gradient(
+        90deg,
+        rgba(255,255,255,0.04) 0%,
+        rgba(255,255,255,0.09) 50%,
+        rgba(255,255,255,0.04) 100%
+    );
+    background-size: 300% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+    border-radius: var(--radius-sm);
+}
+
+.skeleton-row {
+    height: 52px;
+    margin-bottom: 1px;
+}
+
+.skeleton-chart {
+    height: 200px;
+    border-radius: var(--radius);
+}
+
+/* ── Print Button ─────────────────────────────────────────────────────────── */
+
+.btn-print {
+    background: transparent;
+    border: 1px solid var(--border-bright);
+    color: var(--muted);
+    box-shadow: none;
+}
+
+.btn-print:hover {
+    color: var(--text);
+    background: rgba(255,255,255,0.04);
+    box-shadow: none;
+    transform: none;
+}

@@ -1,9 +1,21 @@
 {% extends "base.html" %}
 
+{% block head %}
+<!-- Chart.js — loaded only on admin page -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+{% endblock %}
+
 {% block content %}
 <div class="admin-wrapper">
 
-    <!-- ── Stats Row ─────────────────────────────────────────── -->
+    <!-- Print header (hidden on screen) -->
+    <div class="print-header">
+        <h2>IrisSecure — Attendance Report</h2>
+        <p>Generated on <span id="print-date"></span></p>
+        <script>document.getElementById('print-date').textContent = new Date().toLocaleString();</script>
+    </div>
+
+    <!-- ── Stats Row ──────────────────────────────────────────────────────── -->
     <div class="stats-row">
         <div class="stat-card">
             <div class="stat-icon purple"><i class="fa-solid fa-clipboard-list"></i></div>
@@ -27,15 +39,50 @@
             </div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon pink"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="stat-icon {% if at_risk %}red{% else %}pink{% endif %}">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
             <div>
-                <div class="stat-value" style="{% if at_risk %}color:var(--error){% endif %}">{{ at_risk|length }}</div>
+                <div class="stat-value" {% if at_risk %}style="color:var(--error)"{% endif %}>{{ at_risk|length }}</div>
                 <div class="stat-label">At-Risk (&lt;75%)</div>
             </div>
         </div>
     </div>
 
-    <!-- ── At-Risk Students ──────────────────────────────────── -->
+    <!-- ── Analytics Charts ───────────────────────────────────────────────── -->
+    <div class="charts-grid">
+        <!-- Donut: present vs late -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <span class="chart-title"><i class="fa-solid fa-chart-pie" style="margin-right:0.4rem;color:var(--accent)"></i>Status Breakdown</span>
+            </div>
+            <div class="chart-body">
+                <canvas id="chart-donut" height="220"></canvas>
+            </div>
+        </div>
+
+        <!-- Bar: by department -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <span class="chart-title"><i class="fa-solid fa-chart-bar" style="margin-right:0.4rem;color:var(--accent-2)"></i>By Department</span>
+            </div>
+            <div class="chart-body">
+                <canvas id="chart-bar" height="220"></canvas>
+            </div>
+        </div>
+
+        <!-- Line: 7-day trend -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <span class="chart-title"><i class="fa-solid fa-chart-line" style="margin-right:0.4rem;color:var(--accent-3)"></i>7-Day Trend</span>
+            </div>
+            <div class="chart-body">
+                <canvas id="chart-line" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── At-Risk Students ───────────────────────────────────────────────── -->
     {% if at_risk %}
     <div class="at-risk-section">
         <div class="at-risk-header">
@@ -65,11 +112,11 @@
     </div>
     {% endif %}
 
-    <!-- ── Department Filter ─────────────────────────────────── -->
+    <!-- ── Department Filter ──────────────────────────────────────────────── -->
     {% if all_depts %}
     <div class="dept-filter-bar">
         <span style="font-size:0.82rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap">
-            <i class="fa-solid fa-filter"></i> Department
+            <i class="fa-solid fa-filter"></i> Filter
         </span>
         <button class="dept-pill {% if not active_depts %}active{% endif %}" data-dept="">All</button>
         {% for dept in all_depts %}
@@ -78,7 +125,7 @@
     </div>
     {% endif %}
 
-    <!-- ── Admin Header / Toolbar ────────────────────────────── -->
+    <!-- ── Admin Header / Toolbar ─────────────────────────────────────────── -->
     <div class="admin-header">
         <h2><i class="fa-solid fa-table-list"></i> Attendance Logs</h2>
         <div class="admin-tools">
@@ -92,13 +139,16 @@
             <button class="btn btn-sm btn-secondary" onclick="exportCSV()">
                 <i class="fa-solid fa-file-arrow-down"></i> Export CSV
             </button>
+            <button class="btn btn-sm btn-secondary btn-print" onclick="window.print()">
+                <i class="fa-solid fa-print"></i> Print
+            </button>
             <button class="btn btn-sm btn-secondary" onclick="window.location.reload()">
                 <i class="fa-solid fa-rotate-right"></i> Refresh
             </button>
         </div>
     </div>
 
-    <!-- ── Logs Table ─────────────────────────────────────────── -->
+    <!-- ── Logs Table ─────────────────────────────────────────────────────── -->
     <div class="table-container">
         <table id="logs-table">
             <thead>
@@ -120,22 +170,19 @@
                         <a href="{{ url_for('student_detail', uid=log.uid) }}"
                            style="color:var(--text);text-decoration:none;display:flex;align-items:center;gap:0.4rem">
                             {{ log.name }}
-                            <i class="fa-solid fa-arrow-up-right-from-square"
-                               style="font-size:0.65rem;color:var(--muted)"></i>
+                            <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.65rem;color:var(--muted)"></i>
                         </a>
                     </td>
                     <td class="td-id">{{ log.user_id if log.user_id else '—' }}</td>
-                    <td style="color:var(--muted)">{{ log.department }}</td>
+                    <td>
+                        <span class="dept-tag" data-dept-label="{{ log.department }}">{{ log.department }}</span>
+                    </td>
                     <td>{{ log.timestamp }}</td>
                     <td>
                         {% if log.status == 'late' %}
-                        <span class="badge badge-late">
-                            <i class="fa-solid fa-clock" style="font-size:0.7rem"></i> Late
-                        </span>
+                        <span class="badge badge-late"><i class="fa-solid fa-clock" style="font-size:0.7rem"></i> Late</span>
                         {% else %}
-                        <span class="badge badge-success">
-                            <i class="fa-solid fa-circle-check" style="font-size:0.7rem"></i> Present
-                        </span>
+                        <span class="badge badge-success"><i class="fa-solid fa-circle-check" style="font-size:0.7rem"></i> Present</span>
                         {% endif %}
                     </td>
                     <td>
@@ -149,8 +196,7 @@
                 {% else %}
                 <tr class="no-data">
                     <td colspan="7">
-                        <i class="fa-solid fa-inbox"
-                           style="font-size:2rem;display:block;margin-bottom:0.5rem;opacity:0.4"></i>
+                        <i class="fa-solid fa-inbox" style="font-size:2rem;display:block;margin-bottom:0.5rem;opacity:0.4"></i>
                         No attendance records found.
                     </td>
                 </tr>
@@ -158,11 +204,11 @@
             </tbody>
         </table>
     </div>
+
     <p class="text-center mt-2" style="font-size:0.8rem" id="filter-count"></p>
 </div>
 
-
-<!-- ── Add Student Modal ─────────────────────────────────────────────────── -->
+<!-- ── Add Student Modal ──────────────────────────────────────────────────── -->
 <div id="add-modal" class="modal-overlay hidden" onclick="closeAddModal(event)">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
@@ -208,181 +254,14 @@
 
         <p style="font-size:0.78rem;color:var(--muted);margin-top:1rem;text-align:center">
             <i class="fa-solid fa-info-circle"></i>
-            This adds the student record without iris capture.
-            They can enrol their iris via the <a href="/register" style="color:#a5b4fc">Register</a> page.
+            This adds the student without iris capture.
+            They can enrol via the <a href="/register" style="color:#a5b4fc">Register</a> page.
         </p>
     </div>
 </div>
+{% endblock %}
 
-
-<!-- ── Inline Scripts ─────────────────────────────────────────────────────── -->
-<script>
-// ── Today count ──────────────────────────────────────────────────────────────
-(function () {
-    var today = new Date().toISOString().slice(0, 10);
-    var rows  = document.querySelectorAll('#logs-body tr:not(.no-data)');
-    var count = 0;
-    rows.forEach(function (r) {
-        if (r.cells[4] && r.cells[4].textContent.includes(today)) count++;
-    });
-    document.getElementById('stat-today').textContent = count;
-})();
-
-// ── Search filter ────────────────────────────────────────────────────────────
-var searchInput = document.getElementById('log-search');
-var filterCount = document.getElementById('filter-count');
-
-function applyFilters() {
-    var q    = searchInput.value.toLowerCase().trim();
-    var dept = activeDept;
-    var rows = document.querySelectorAll('#logs-body tr:not(.no-data)');
-    var visible = 0;
-    rows.forEach(function (row) {
-        var matchSearch = !q || row.textContent.toLowerCase().includes(q);
-        var matchDept   = !dept || row.dataset.dept === dept;
-        var show = matchSearch && matchDept;
-        row.classList.toggle('hidden', !show);
-        if (show) visible++;
-    });
-    var total = rows.length;
-    filterCount.textContent = (q || dept)
-        ? 'Showing ' + visible + ' of ' + total + ' records'
-        : '';
-}
-
-searchInput.addEventListener('input', applyFilters);
-
-// ── Department filter pills ──────────────────────────────────────────────────
-var activeDept = '';
-document.querySelectorAll('.dept-pill').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-        document.querySelectorAll('.dept-pill').forEach(function (b) { b.classList.remove('active'); });
-        this.classList.add('active');
-        activeDept = this.dataset.dept;
-        applyFilters();
-    });
-});
-
-// ── Delete student ───────────────────────────────────────────────────────────
-function deleteStudent(uid, name, btn) {
-    if (!confirm('Delete "' + name + '" and all their attendance records?\n\nThis cannot be undone.')) return;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-    fetch('/admin/delete-student/' + uid, { method: 'POST' })
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-            if (data.success) {
-                var row = btn.closest('tr');
-                row.style.opacity = '0';
-                row.style.transition = 'opacity 0.3s';
-                setTimeout(function () { row.remove(); }, 300);
-                showAdminToast(name + ' deleted.', 'info');
-            } else {
-                showAdminToast(data.message || 'Delete failed.', 'error');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-            }
-        })
-        .catch(function () {
-            showAdminToast('Server error.', 'error');
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-        });
-}
-
-// ── Add student modal ────────────────────────────────────────────────────────
-function openAddModal() {
-    document.getElementById('add-modal').classList.remove('hidden');
-    document.getElementById('m-uid').focus();
-}
-function closeAddModal(e) {
-    if (!e || e.target === document.getElementById('add-modal')) {
-        document.getElementById('add-modal').classList.add('hidden');
-        ['m-uid','m-name','m-dept','m-email'].forEach(function (id) {
-            document.getElementById(id).value = '';
-        });
-        document.getElementById('modal-error').classList.add('hidden');
-    }
-}
-function saveStudent() {
-    var uid   = document.getElementById('m-uid').value.trim();
-    var name  = document.getElementById('m-name').value.trim();
-    var dept  = document.getElementById('m-dept').value.trim();
-    var email = document.getElementById('m-email').value.trim();
-    var errEl = document.getElementById('modal-error');
-    var btn   = document.getElementById('modal-save-btn');
-
-    if (!uid || !name || !dept) {
-        errEl.textContent = 'ID, name, and department are required.';
-        errEl.classList.remove('hidden');
-        return;
-    }
-    errEl.classList.add('hidden');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
-
-    fetch('/admin/add-student', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: uid, name: name, department: dept, parent_email: email })
-    })
-    .then(function (r) { return r.json(); })
-    .then(function (data) {
-        if (data.success) {
-            showAdminToast(data.message, 'success');
-            closeAddModal();
-            setTimeout(function () { window.location.reload(); }, 1000);
-        } else {
-            errEl.textContent = data.message || 'Failed to add student.';
-            errEl.classList.remove('hidden');
-        }
-    })
-    .catch(function () {
-        errEl.textContent = 'Server error. Please try again.';
-        errEl.classList.remove('hidden');
-    })
-    .finally(function () {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Student';
-    });
-}
-
-// ── CSV export ───────────────────────────────────────────────────────────────
-function exportCSV() {
-    var rows = document.querySelectorAll('#logs-body tr:not(.no-data):not(.hidden)');
-    if (!rows.length) return;
-    var csv = 'No,Name,User ID,Department,Timestamp,Status\n';
-    rows.forEach(function (r, i) {
-        var cells = r.querySelectorAll('td');
-        var status = r.querySelector('.badge') ? r.querySelector('.badge').textContent.trim() : '';
-        csv += [
-            i + 1,
-            '"' + (cells[1] ? cells[1].textContent.trim() : '') + '"',
-            '"' + (cells[2] ? cells[2].textContent.trim() : '') + '"',
-            '"' + (cells[3] ? cells[3].textContent.trim() : '') + '"',
-            '"' + (cells[4] ? cells[4].textContent.trim() : '') + '"',
-            '"' + status + '"'
-        ].join(',') + '\n';
-    });
-    var a = document.createElement('a');
-    a.href     = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-    a.download = 'attendance_' + new Date().toISOString().slice(0, 10) + '.csv';
-    a.click();
-}
-
-// ── Lightweight toast for admin page ─────────────────────────────────────────
-function showAdminToast(msg, type) {
-    var icons  = { success: 'fa-circle-check', error: 'fa-triangle-exclamation', info: 'fa-circle-info' };
-    var tc = document.querySelector('.toast-container');
-    if (!tc) { tc = document.createElement('div'); tc.className = 'toast-container'; document.body.appendChild(tc); }
-    var t = document.createElement('div');
-    t.className = 'toast ' + (type || 'info');
-    t.innerHTML = '<i class="fa-solid ' + (icons[type] || icons.info) + '"></i><span>' + msg + '</span>';
-    tc.appendChild(t);
-    setTimeout(function () {
-        t.style.animation = 'toastOut 0.3s forwards';
-        t.addEventListener('animationend', function () { t.remove(); });
-    }, 4000);
-}
-</script>
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
 {% endblock %}

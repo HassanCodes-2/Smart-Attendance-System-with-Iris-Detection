@@ -1,0 +1,36 @@
+/* ── Shared Keyframes ─────────────────────────────────────────────────────── */
+
+@keyframes toastIn  { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes toastOut { to   { opacity: 0; transform: translateX(20px); } }
+
+@keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Staggered page-entry for stat cards */
+.stat-card {
+    animation: fadeInUp 0.4s ease both;
+}
+.stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stat-card:nth-child(2) { animation-delay: 0.10s; }
+.stat-card:nth-child(3) { animation-delay: 0.15s; }
+.stat-card:nth-child(4) { animation-delay: 0.20s; }
+
+/* Staggered entry for chart cards */
+.chart-card {
+    animation: fadeInUp 0.45s ease both;
+}
+.chart-card:nth-child(1) { animation-delay: 0.10s; }
+.chart-card:nth-child(2) { animation-delay: 0.18s; }
+.chart-card:nth-child(3) { animation-delay: 0.26s; }

@@ -2,20 +2,18 @@
 
 {% block content %}
 <div class="card">
+    <!-- Step progress -->
     <div class="form-progress" id="form-progress">
         <div class="fp-step active" id="fp1">
-            <div class="fp-dot">1</div>
-            <span>Details</span>
+            <div class="fp-dot">1</div><span>Details</span>
         </div>
         <div class="fp-line" id="fp-line1"></div>
         <div class="fp-step" id="fp2">
-            <div class="fp-dot">2</div>
-            <span>Capture</span>
+            <div class="fp-dot">2</div><span>Capture</span>
         </div>
         <div class="fp-line" id="fp-line2"></div>
         <div class="fp-step" id="fp3">
-            <div class="fp-dot">3</div>
-            <span>Done</span>
+            <div class="fp-dot">3</div><span>Done</span>
         </div>
     </div>
 
@@ -30,7 +28,7 @@
         <input type="text" id="nameInput" placeholder="Full Name" autocomplete="off">
         <i class="fa-solid fa-user"></i>
     </div>
-    <div class="input-group mb-2">
+    <div class="input-group">
         <input type="text" id="departmentInput" placeholder="Department" autocomplete="off">
         <i class="fa-solid fa-building"></i>
     </div>
@@ -44,14 +42,44 @@
         <span>Position your face in front of the camera and look directly at the lens. Ensure good lighting for the best result.</span>
     </div>
 
-    <div class="camera-wrapper">
+    <!-- Camera + iris overlay -->
+    <div class="camera-wrapper" id="camera-wrapper">
         <video id="video" autoplay playsinline></video>
         <canvas id="canvas" style="display:none"></canvas>
-        <div class="scan-line"></div>
+
+        <div class="iris-overlay">
+            <div class="iris-ring">
+                <div class="iris-ring-outer"></div>
+                <div class="iris-ring-inner"></div>
+                <div class="iris-dots">
+                    <div class="iris-dot"></div><div class="iris-dot"></div>
+                    <div class="iris-dot"></div><div class="iris-dot"></div>
+                    <div class="iris-dot"></div><div class="iris-dot"></div>
+                    <div class="iris-dot"></div><div class="iris-dot"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="iris-corners">
+            <div class="corner tl"></div><div class="corner tr"></div>
+            <div class="corner bl"></div><div class="corner br"></div>
+        </div>
+
+        <div class="camera-flash" id="camera-flash"></div>
+
+        <div class="camera-status" id="camera-status">
+            <div class="status-dot"></div>
+            <span id="status-text">Initialising…</span>
+        </div>
     </div>
 
-    <button id="captureBtn" data-type="register" class="btn-full">
+    <button id="captureBtn" class="btn-full">
         <i class="fa-solid fa-camera"></i> Capture &amp; Register
     </button>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/camera.js') }}"></script>
+<script src="{{ url_for('static', filename='js/register.js') }}"></script>
 {% endblock %}

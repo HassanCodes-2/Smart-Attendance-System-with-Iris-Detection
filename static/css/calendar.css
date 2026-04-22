@@ -1,0 +1,84 @@
+/* ── Calendar Grid ────────────────────────────────────────────────────────── */
+
+.cal-grid-wrap {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.25rem;
+    width: 100%;
+    margin-bottom: 2rem;
+}
+
+.cal-month-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+}
+
+.cal-month-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.02em;
+}
+
+/* Day-of-week header */
+.cal-dow-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    margin-bottom: 4px;
+}
+
+.cal-dow-row span {
+    text-align: center;
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2px 0;
+}
+
+/* Day cells */
+.cal-days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+}
+
+.cal-cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: default;
+    transition: transform 0.15s;
+}
+
+.cal-cell:not(.empty):hover { transform: scale(1.15); }
+
+.cal-cell.empty   { background: transparent; }
+.cal-cell.future  { background: rgba(255,255,255,0.04); color: var(--muted); }
+.cal-cell.present { background: rgba(34,197,94,0.25);  color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
+.cal-cell.late    { background: rgba(245,158,11,0.25); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+.cal-cell.absent  { background: rgba(239,68,68,0.18);  color: #fca5a5; border: 1px solid rgba(239,68,68,0.25); }
+.cal-cell.today   { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* Legend dots */
+.cal-dot {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 3px;
+    margin-right: 4px;
+    vertical-align: middle;
+}
+
+.cal-dot.present { background: rgba(34,197,94,0.5);    border: 1px solid rgba(34,197,94,0.5); }
+.cal-dot.late    { background: rgba(245,158,11,0.5);   border: 1px solid rgba(245,158,11,0.5); }
+.cal-dot.absent  { background: rgba(239,68,68,0.4);    border: 1px solid rgba(239,68,68,0.4); }
+.cal-dot.future  { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); }
