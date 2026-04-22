@@ -1,43 +1,74 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IrisSecure | Smart Attendance Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="landing-body">
 
-{% block content %}
-<div class="hero">
-    <div class="hero-eyebrow">
-        <i class="fa-solid fa-shield-halved"></i> Biometric Attendance System
-    </div>
-    <h1>Secure Access<br>Powered by Iris</h1>
-    <p>Next-generation biometric attendance using iris recognition. Fast, accurate, and contact-free identity verification.</p>
-    <div class="hero-actions">
-        <a href="/register" class="btn" style="max-width:220px">
-            <i class="fa-solid fa-user-plus"></i> Register
+<header class="landing-header">
+    <a href="/" class="logo">
+        <div class="logo-icon"><i class="fa-solid fa-eye"></i></div>
+        <span>Iris<span class="highlight">Secure</span></span>
+    </a>
+    <div style="display:flex;gap:0.75rem">
+        <a href="/student/login" class="btn btn-secondary btn-sm">
+            <i class="fa-solid fa-user-graduate"></i> Student Login
         </a>
-        <a href="/attendance" class="btn btn-purple" style="max-width:220px">
-            <i class="fa-solid fa-eye"></i> Mark Attendance
+        <a href="/admin/login" class="btn btn-sm">
+            <i class="fa-solid fa-shield-halved"></i> Admin Login
         </a>
     </div>
-</div>
+</header>
 
-<div class="feature-grid">
-    <div class="feature-card fc-indigo">
-        <div class="fc-icon"><i class="fa-solid fa-user-plus"></i></div>
-        <h3>Quick Registration</h3>
-        <p>Enroll your iris biometric in under 30 seconds. Your data is stored securely and used only for identity verification.</p>
-        <a href="/register" class="btn btn-sm"><i class="fa-solid fa-arrow-right"></i> Get Started</a>
+<main class="landing-main">
+    <div class="hero">
+        <div class="hero-eyebrow">
+            <i class="fa-solid fa-shield-halved"></i> Biometric Attendance Portal
+        </div>
+        <h1>Secure Access<br>Powered by Iris</h1>
+        <p>Next-generation iris recognition attendance system with student and admin portals, timetables, announcements, and real-time analytics.</p>
+        <div class="hero-actions">
+            <a href="/student/login" class="btn" style="max-width:220px">
+                <i class="fa-solid fa-user-graduate"></i> Student Portal
+            </a>
+            <a href="/admin/login" class="btn btn-purple" style="max-width:220px">
+                <i class="fa-solid fa-shield-halved"></i> Admin Panel
+            </a>
+        </div>
     </div>
 
-    <div class="feature-card fc-purple">
-        <div class="fc-icon"><i class="fa-solid fa-eye"></i></div>
-        <h3>Iris Recognition</h3>
-        <p>Advanced ORB-based feature matching delivers fast and reliable identity verification — no PINs or cards needed.</p>
-        <a href="/attendance" class="btn btn-sm btn-purple"><i class="fa-solid fa-arrow-right"></i> Scan Now</a>
+    <div class="feature-grid">
+        <div class="feature-card fc-indigo">
+            <div class="fc-icon"><i class="fa-solid fa-eye"></i></div>
+            <h3>Iris Recognition</h3>
+            <p>Students mark their attendance by scanning their iris. No cards, no PINs — just biometric identity verification.</p>
+        </div>
+        <div class="feature-card fc-purple">
+            <div class="fc-icon"><i class="fa-solid fa-user-graduate"></i></div>
+            <h3>Student Portal</h3>
+            <p>Students can view their attendance history, calendar heatmap, timetable, and announcements in one place.</p>
+        </div>
+        <div class="feature-card fc-pink">
+            <div class="fc-icon"><i class="fa-solid fa-chart-line"></i></div>
+            <h3>Admin Analytics</h3>
+            <p>Admins get live charts, at-risk warnings, department filters, and exportable reports.</p>
+        </div>
     </div>
+</main>
 
-    <div class="feature-card fc-pink">
-        <div class="fc-icon"><i class="fa-solid fa-table-list"></i></div>
-        <h3>Live Admin Logs</h3>
-        <p>Track every attendance event in real-time. Search, filter by department, and export logs from the admin dashboard.</p>
-        <a href="/admin" class="btn btn-sm btn-purple"
-           style="background:var(--grad-pink)"><i class="fa-solid fa-arrow-right"></i> View Logs</a>
+<footer>
+    <div class="footer-inner">
+        <div class="footer-logo"><i class="fa-solid fa-eye"></i> IrisSecure</div>
+        <p class="footer-credits">Developed by <strong>Fahad Hassan</strong> &amp; <strong>Muzammil Yaseen</strong></p>
+        <p class="footer-supervisor">Supervised by Mam Maryam Ismail</p>
     </div>
-</div>
-{% endblock %}
+</footer>
+</body>
+</html>

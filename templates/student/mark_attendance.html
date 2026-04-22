@@ -1,0 +1,48 @@
+{% extends "student/base.html" %}
+{% block title %}Mark Attendance{% endblock %}
+{% block topbar_title %}Mark Attendance{% endblock %}
+
+{% block content %}
+<div style="max-width:520px;margin:0 auto">
+
+    {% if marked_today %}
+    <div class="notif notif-success" style="margin-bottom:1.5rem;font-size:1rem;padding:1rem 1.25rem">
+        <i class="fa-solid fa-circle-check"></i>
+        You have already marked your attendance for today!
+    </div>
+    <div style="text-align:center">
+        <a href="{{ url_for('student_dashboard') }}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+    {% else %}
+
+    <div class="tip-box">
+        <i class="fa-solid fa-eye"></i>
+        <span>Look directly into the camera. Your iris will be matched against your registered profile to confirm your identity.</span>
+    </div>
+
+    <div class="card">
+        <div class="card-title"><i class="fa-solid fa-eye"></i> Iris Verification</div>
+        <p class="card-sub">Scanning as <strong>{{ student['name'] }}</strong> ({{ student['user_id'] }})</p>
+
+        <div class="camera-wrapper">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas" style="display:none"></canvas>
+            <div class="scan-line"></div>
+        </div>
+
+        <div class="text-center mb-2" style="font-size:0.8rem;color:var(--muted)">
+            <i class="fa-regular fa-clock"></i> <span id="live-clock"></span>
+        </div>
+
+        <button id="captureBtn" data-type="student-attendance" class="btn-full btn-purple">
+            <i class="fa-solid fa-check-to-slot"></i> Verify &amp; Mark Attendance
+        </button>
+
+        <div id="result-box" class="hidden" style="margin-top:1rem;padding:1rem;border-radius:var(--radius);text-align:center;font-weight:600"></div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

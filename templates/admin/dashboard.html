@@ -1,0 +1,239 @@
+{% extends "admin/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block topbar_title %}Dashboard{% endblock %}
+
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<!-- Stats -->
+<div class="stats-row" style="grid-template-columns:repeat(4,1fr)">
+    <div class="stat-card">
+        <div class="stat-icon purple"><i class="fa-solid fa-users"></i></div>
+        <div><div class="stat-value">{{ total_students }}</div><div class="stat-label">Total Students</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="fa-solid fa-user-check"></i></div>
+        <div><div class="stat-value">{{ today_present }}</div><div class="stat-label">Present Today</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon orange"><i class="fa-solid fa-building"></i></div>
+        <div><div class="stat-value">{{ total_depts }}</div><div class="stat-label">Departments</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon pink"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div>
+            <div class="stat-value {% if at_risk_count %}text-danger{% endif %}">{{ at_risk_count }}</div>
+            <div class="stat-label">At-Risk (&lt;75%)</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="charts-row">
+    <!-- 30-day trend -->
+    <div class="chart-card chart-large">
+        <div class="chart-header">
+            <div>
+                <div class="chart-title"><i class="fa-solid fa-chart-line"></i> Attendance Trend</div>
+                <div class="chart-sub">Daily records — last 30 days</div>
+            </div>
+        </div>
+        <canvas id="trendChart" height="100"></canvas>
+    </div>
+
+    <!-- Today donut -->
+    <div class="chart-card chart-small">
+        <div class="chart-header">
+            <div>
+                <div class="chart-title"><i class="fa-solid fa-circle-half-stroke"></i> Today</div>
+                <div class="chart-sub">Present / Late / Absent</div>
+            </div>
+        </div>
+        <canvas id="todayChart" height="180"></canvas>
+        <div class="donut-legend">
+            <span><span class="dot green"></span> Present {{ today_summary.present }}</span>
+            <span><span class="dot orange"></span> Late {{ today_summary.late }}</span>
+            <span><span class="dot red"></span> Absent {{ today_summary.absent }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Department bar chart -->
+<div class="chart-card" style="margin-bottom:1.5rem">
+    <div class="chart-header">
+        <div>
+            <div class="chart-title"><i class="fa-solid fa-chart-bar"></i> Department Attendance Today</div>
+            <div class="chart-sub">Percentage of students present today per department</div>
+        </div>
+    </div>
+    <canvas id="deptChart" height="80"></canvas>
+</div>
+
+<!-- Bottom row: At-risk + Recent activity -->
+<div class="dash-bottom-row">
+
+    <!-- At-risk -->
+    {% if at_risk %}
+    <div class="dash-card">
+        <div class="dash-card-header">
+            <span><i class="fa-solid fa-triangle-exclamation" style="color:var(--error)"></i> At-Risk Students</span>
+            <a href="{{ url_for('admin_students') }}" class="btn btn-sm btn-secondary">View all</a>
+        </div>
+        {% for s in at_risk %}
+        <a href="{{ url_for('admin_student_detail', uid=s.id) }}" class="at-risk-row">
+            <div class="at-risk-avatar">{{ s.name[0] }}</div>
+            <div style="flex:1;min-width:0">
+                <div style="font-weight:600;color:var(--text);font-size:0.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.name }}</div>
+                <div style="font-size:0.75rem;color:var(--muted)">{{ s.department }}</div>
+            </div>
+            <span style="font-weight:700;color:var(--error);font-size:0.9rem;white-space:nowrap">{{ s.percentage }}%</span>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Recent activity -->
+    <div class="dash-card" style="flex:2">
+        <div class="dash-card-header">
+            <span><i class="fa-solid fa-clock-rotate-left" style="color:var(--accent)"></i> Recent Activity</span>
+            <a href="{{ url_for('admin_attendance') }}" class="btn btn-sm btn-secondary">View all</a>
+        </div>
+        {% for log in recent %}
+        <div class="activity-row">
+            <div class="activity-avatar">{{ log.name[0] }}</div>
+            <div style="flex:1">
+                <div style="font-weight:600;color:var(--text);font-size:0.88rem">{{ log.name }}</div>
+                <div style="font-size:0.75rem;color:var(--muted)">{{ log.department }} · {{ log.timestamp }}</div>
+            </div>
+            {% if log.status == 'late' %}
+            <span class="badge badge-late"><i class="fa-solid fa-clock" style="font-size:0.65rem"></i> Late</span>
+            {% else %}
+            <span class="badge badge-success"><i class="fa-solid fa-circle-check" style="font-size:0.65rem"></i> Present</span>
+            {% endif %}
+        </div>
+        {% else %}
+        <div style="text-align:center;padding:2rem;color:var(--muted)">
+            <i class="fa-solid fa-inbox" style="font-size:2rem;display:block;margin-bottom:0.5rem;opacity:0.4"></i>
+            No activity today.
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Recent announcements -->
+    <div class="dash-card">
+        <div class="dash-card-header">
+            <span><i class="fa-solid fa-bullhorn" style="color:var(--accent-2)"></i> Announcements</span>
+            <a href="{{ url_for('admin_announcements') }}" class="btn btn-sm btn-secondary">Manage</a>
+        </div>
+        {% for ann in announcements %}
+        <div style="padding:0.75rem 0;border-bottom:1px solid var(--border)">
+            <div style="font-weight:600;color:var(--text);font-size:0.88rem">{{ ann.title }}</div>
+            <div style="font-size:0.75rem;color:var(--muted);margin-top:0.2rem">
+                {{ 'All Departments' if ann.target == 'all' else ann.target }}
+                · {{ ann.created_at[:10] }}
+            </div>
+        </div>
+        {% else %}
+        <div style="text-align:center;padding:2rem;color:var(--muted)">No announcements yet.</div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const CHART_DEFAULTS = {
+    color: '#f1f5f9',
+    borderColor: 'rgba(255,255,255,0.07)',
+    gridColor: 'rgba(255,255,255,0.05)',
+};
+
+// Trend line chart
+const trendLabels = {{ trend | map(attribute='date') | list | tojson }};
+const trendData   = {{ trend | map(attribute='cnt')  | list | tojson }};
+
+new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+        labels: trendLabels,
+        datasets: [{
+            label: 'Attendance',
+            data: trendData,
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99,102,241,0.12)',
+            borderWidth: 2,
+            pointRadius: 3,
+            pointBackgroundColor: '#6366f1',
+            fill: true,
+            tension: 0.4,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { ticks: { color: '#64748b', maxTicksLimit: 10 }, grid: { color: CHART_DEFAULTS.gridColor } },
+            y: { ticks: { color: '#64748b' }, grid: { color: CHART_DEFAULTS.gridColor }, beginAtZero: true }
+        }
+    }
+});
+
+// Today donut
+new Chart(document.getElementById('todayChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Present', 'Late', 'Absent'],
+        datasets: [{
+            data: [{{ today_summary.present }}, {{ today_summary.late }}, {{ today_summary.absent }}],
+            backgroundColor: ['rgba(34,197,94,0.8)', 'rgba(245,158,11,0.8)', 'rgba(239,68,68,0.7)'],
+            borderColor: ['#22c55e', '#f59e0b', '#ef4444'],
+            borderWidth: 2,
+            hoverOffset: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        cutout: '65%',
+        plugins: {
+            legend: { display: false },
+        }
+    }
+});
+
+// Department bar chart
+const deptLabels = {{ dept_stats | map(attribute='department') | list | tojson }};
+const deptData   = {{ dept_stats | map(attribute='percentage') | list | tojson }};
+
+new Chart(document.getElementById('deptChart'), {
+    type: 'bar',
+    data: {
+        labels: deptLabels,
+        datasets: [{
+            label: 'Attendance %',
+            data: deptData,
+            backgroundColor: [
+                'rgba(99,102,241,0.7)', 'rgba(168,85,247,0.7)',
+                'rgba(236,72,153,0.7)', 'rgba(34,197,94,0.7)',
+                'rgba(245,158,11,0.7)',
+            ],
+            borderRadius: 6,
+            borderSkipped: false,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { ticks: { color: '#64748b' }, grid: { display: false } },
+            y: { ticks: { color: '#64748b', callback: v => v + '%' },
+                 grid: { color: CHART_DEFAULTS.gridColor },
+                 min: 0, max: 100 }
+        }
+    }
+});
+</script>
+{% endblock %}

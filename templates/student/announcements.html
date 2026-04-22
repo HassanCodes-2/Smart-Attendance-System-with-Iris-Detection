@@ -1,0 +1,31 @@
+{% extends "student/base.html" %}
+{% block title %}Announcements{% endblock %}
+{% block topbar_title %}Announcements{% endblock %}
+
+{% block content %}
+
+<div class="ann-list">
+    {% for a in announcements %}
+    <div class="ann-card">
+        <div class="ann-top">
+            <div>
+                <div class="ann-title">{{ a.title }}</div>
+                <div class="ann-meta">
+                    <span class="badge {% if a.target == 'all' %}badge-success{% else %}badge-dept{% endif %}">
+                        <i class="fa-solid {% if a.target == 'all' %}fa-globe{% else %}fa-building{% endif %}" style="font-size:0.65rem"></i>
+                        {{ 'All Departments' if a.target == 'all' else a.target }}
+                    </span>
+                    <span style="color:var(--muted);font-size:0.75rem">{{ a.created_at[:16] }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="ann-body">{{ a.body }}</div>
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:3rem;color:var(--muted)">
+        <i class="fa-solid fa-bullhorn" style="font-size:3rem;opacity:0.3;display:block;margin-bottom:1rem"></i>
+        No announcements at this time.
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

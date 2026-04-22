@@ -1,0 +1,162 @@
+{% extends "admin/base.html" %}
+{% block title %}Attendance Logs{% endblock %}
+{% block topbar_title %}Attendance Logs{% endblock %}
+
+{% block content %}
+
+{% if at_risk %}
+<div class="at-risk-section" style="margin-bottom:1.5rem">
+    <div class="at-risk-header"><i class="fa-solid fa-triangle-exclamation"></i> Students Below 75% Attendance</div>
+    <div class="at-risk-grid">
+        {% for s in at_risk %}
+        <div class="at-risk-card">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem">
+                <div>
+                    <div style="font-weight:700;color:var(--text)">{{ s.name }}</div>
+                    <div style="font-size:0.75rem;color:var(--muted)">{{ s.department }}</div>
+                </div>
+                <span style="font-weight:800;color:var(--error)">{{ s.percentage }}%</span>
+            </div>
+            <div class="at-risk-bar">
+                <div class="at-risk-bar-fill" style="width:{{ s.percentage }}%"></div>
+                <div class="at-risk-threshold"></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Filters -->
+<div class="filter-bar">
+    <!-- Department pills -->
+    {% if all_depts %}
+    <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+        <span class="filter-label"><i class="fa-solid fa-filter"></i> Dept</span>
+        <button class="dept-pill {% if not active_depts %}active{% endif %}" data-dept="">All</button>
+        {% for d in all_depts %}
+        <button class="dept-pill {% if d in active_depts %}active{% endif %}" data-dept="{{ d }}">{{ d }}</button>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <!-- Date range -->
+    <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+        <span class="filter-label"><i class="fa-regular fa-calendar"></i> From</span>
+        <input type="date" id="f-from" value="{{ date_from }}" style="padding:0.45rem 0.75rem;border-radius:var(--radius-sm);font-size:0.85rem;margin-bottom:0;width:auto">
+        <span class="filter-label">To</span>
+        <input type="date" id="f-to" value="{{ date_to }}" style="padding:0.45rem 0.75rem;border-radius:var(--radius-sm);font-size:0.85rem;margin-bottom:0;width:auto">
+        <button class="btn btn-sm" onclick="applyDateFilter()"><i class="fa-solid fa-magnifying-glass"></i> Apply</button>
+    </div>
+</div>
+
+<div class="admin-header" style="margin-top:1rem">
+    <h2><i class="fa-solid fa-clipboard-list"></i> Logs
+        <span style="font-size:0.85rem;font-weight:400;color:var(--muted)">({{ logs|length }} records)</span>
+    </h2>
+    <div class="admin-tools">
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="search" id="log-search" placeholder="Search…">
+        </div>
+        <button class="btn btn-sm btn-secondary" onclick="exportCSV()">
+            <i class="fa-solid fa-file-arrow-down"></i> Export CSV
+        </button>
+    </div>
+</div>
+
+<div class="table-container">
+    <table id="logs-table">
+        <thead><tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>User ID</th>
+            <th>Department</th>
+            <th>Timestamp</th>
+            <th>Status</th>
+        </tr></thead>
+        <tbody id="logs-body">
+            {% for log in logs %}
+            <tr data-dept="{{ log.department }}">
+                <td style="color:var(--muted);font-size:0.8rem">{{ loop.index }}</td>
+                <td class="td-name">
+                    <a href="{{ url_for('admin_student_detail', uid=log.uid) }}"
+                       style="color:var(--text);text-decoration:none">
+                        {{ log.name }} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.6rem;color:var(--muted)"></i>
+                    </a>
+                </td>
+                <td class="td-id">{{ log.user_id }}</td>
+                <td style="color:var(--muted)">{{ log.department }}</td>
+                <td>{{ log.timestamp }}</td>
+                <td>
+                    {% if log.status == 'late' %}
+                    <span class="badge badge-late"><i class="fa-solid fa-clock" style="font-size:0.65rem"></i> Late</span>
+                    {% else %}
+                    <span class="badge badge-success"><i class="fa-solid fa-circle-check" style="font-size:0.65rem"></i> Present</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr class="no-data"><td colspan="6">
+                <i class="fa-solid fa-inbox" style="font-size:2rem;display:block;margin-bottom:0.5rem;opacity:0.4"></i>
+                No records found.
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<p id="filter-count" class="text-center mt-2" style="font-size:0.8rem;color:var(--muted)"></p>
+
+<script>
+var activeDept = '{{ active_depts[0] if active_depts else "" }}';
+
+document.querySelectorAll('.dept-pill').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.dept-pill').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        activeDept = this.dataset.dept;
+        filterRows();
+    });
+});
+
+document.getElementById('log-search').addEventListener('input', filterRows);
+
+function filterRows() {
+    var q    = document.getElementById('log-search').value.toLowerCase();
+    var rows = document.querySelectorAll('#logs-body tr:not(.no-data)');
+    var vis  = 0;
+    rows.forEach(function(r) {
+        var show = (!q || r.textContent.toLowerCase().includes(q)) &&
+                   (!activeDept || r.dataset.dept === activeDept);
+        r.classList.toggle('hidden', !show);
+        if (show) vis++;
+    });
+    document.getElementById('filter-count').textContent =
+        (q || activeDept) ? 'Showing ' + vis + ' of ' + rows.length : '';
+}
+
+function applyDateFilter() {
+    var from = document.getElementById('f-from').value;
+    var to   = document.getElementById('f-to').value;
+    var url  = new URL(window.location.href);
+    from ? url.searchParams.set('from', from) : url.searchParams.delete('from');
+    to   ? url.searchParams.set('to',   to)   : url.searchParams.delete('to');
+    window.location.href = url.toString();
+}
+
+function exportCSV() {
+    var rows = document.querySelectorAll('#logs-body tr:not(.no-data):not(.hidden)');
+    if (!rows.length) return;
+    var csv = 'No,Name,User ID,Department,Timestamp,Status\n';
+    rows.forEach(function(r, i) {
+        var c = r.querySelectorAll('td');
+        var status = r.querySelector('.badge') ? r.querySelector('.badge').textContent.trim() : '';
+        csv += [i+1, '"'+c[1].textContent.trim()+'"', '"'+c[2].textContent.trim()+'"',
+                '"'+c[3].textContent.trim()+'"', '"'+c[4].textContent.trim()+'"', '"'+status+'"'].join(',') + '\n';
+    });
+    var a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = 'attendance_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+}
+</script>
+{% endblock %}

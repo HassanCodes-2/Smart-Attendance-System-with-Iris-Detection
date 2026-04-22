@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin{% endblock %} | IrisSecure</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body class="portal-body">
+
+<div class="portal-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon"><i class="fa-solid fa-eye"></i></div>
+            <span>Iris<span class="highlight">Secure</span></span>
+        </div>
+
+        <div class="sidebar-section-label">Main</div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin_dashboard') }}"    class="slink {% if request.endpoint=='admin_dashboard' %}active{% endif %}">
+                <i class="fa-solid fa-gauge-high"></i> Dashboard
+            </a>
+            <a href="{{ url_for('admin_register') }}"     class="slink {% if request.endpoint=='admin_register' %}active{% endif %}">
+                <i class="fa-solid fa-user-plus"></i> Register Student
+            </a>
+            <a href="{{ url_for('admin_students') }}"     class="slink {% if 'student' in request.endpoint %}active{% endif %}">
+                <i class="fa-solid fa-users"></i> Students
+            </a>
+        </nav>
+
+        <div class="sidebar-section-label">Attendance</div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin_attendance') }}"   class="slink {% if request.endpoint=='admin_attendance' %}active{% endif %}">
+                <i class="fa-solid fa-clipboard-list"></i> Attendance Logs
+            </a>
+        </nav>
+
+        <div class="sidebar-section-label">Manage</div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin_timetable') }}"    class="slink {% if request.endpoint=='admin_timetable' %}active{% endif %}">
+                <i class="fa-solid fa-calendar-days"></i> Timetable
+            </a>
+            <a href="{{ url_for('admin_announcements') }}" class="slink {% if request.endpoint=='admin_announcements' %}active{% endif %}">
+                <i class="fa-solid fa-bullhorn"></i> Announcements
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="sidebar-user">
+                <div class="sidebar-avatar"><i class="fa-solid fa-shield-halved"></i></div>
+                <div>
+                    <div style="font-size:0.8rem;font-weight:600;color:var(--text)">{{ current_user.email }}</div>
+                    <div style="font-size:0.72rem;color:var(--muted)">Administrator</div>
+                </div>
+            </div>
+            <a href="{{ url_for('admin_logout') }}" class="slink slink-danger">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main content -->
+    <div class="portal-main">
+        <div class="portal-topbar">
+            <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="topbar-title">{% block topbar_title %}Admin Panel{% endblock %}</div>
+            <div style="font-size:0.8rem;color:var(--muted)" id="live-clock"></div>
+        </div>
+        <div class="portal-content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</div>
+
+<div class="toast-container"></div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

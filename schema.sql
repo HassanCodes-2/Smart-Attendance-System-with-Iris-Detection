@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
     name TEXT NOT NULL,
     department TEXT NOT NULL,
     parent_email TEXT,
+    password TEXT,
     iris_features BLOB NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -20,5 +21,24 @@ CREATE TABLE IF NOT EXISTS admins (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS timetable (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    department TEXT NOT NULL,
+    day_of_week INTEGER NOT NULL,
+    subject TEXT NOT NULL,
+    instructor TEXT,
+    room TEXT,
+    start_time TEXT NOT NULL,
+    end_time TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS announcements (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    target TEXT DEFAULT 'all',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

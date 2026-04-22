@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Student Portal{% endblock %} | IrisSecure</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body class="portal-body">
+
+<div class="portal-layout">
+
+    <!-- Student Sidebar -->
+    <aside class="sidebar sidebar-student" id="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon"><i class="fa-solid fa-eye"></i></div>
+            <span>Iris<span class="highlight">Secure</span></span>
+        </div>
+
+        <!-- Student identity card -->
+        <div class="sidebar-student-card">
+            <div class="sidebar-avatar student-avatar-lg">{{ student['name'][0] }}</div>
+            <div class="sidebar-student-info">
+                <div class="sidebar-student-name">{{ student['name'] }}</div>
+                <div class="sidebar-student-meta">{{ student['user_id'] }}</div>
+                <div class="sidebar-student-dept">{{ student['department'] }}</div>
+            </div>
+        </div>
+
+        <div class="sidebar-section-label">My Portal</div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('student_dashboard') }}" class="slink {% if request.endpoint=='student_dashboard' %}active{% endif %}">
+                <i class="fa-solid fa-gauge"></i> Dashboard
+            </a>
+            <a href="{{ url_for('student_attendance') }}" class="slink {% if 'attendance' in request.endpoint %}active{% endif %}">
+                <i class="fa-solid fa-eye"></i> Mark Attendance
+            </a>
+            <a href="{{ url_for('student_calendar') }}" class="slink {% if request.endpoint=='student_calendar' %}active{% endif %}">
+                <i class="fa-regular fa-calendar"></i> My Calendar
+            </a>
+        </nav>
+
+        <div class="sidebar-section-label">Info</div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('student_timetable') }}" class="slink {% if request.endpoint=='student_timetable' %}active{% endif %}">
+                <i class="fa-solid fa-calendar-days"></i> Timetable
+            </a>
+            <a href="{{ url_for('student_announcements') }}" class="slink {% if request.endpoint=='student_announcements' %}active{% endif %}">
+                <i class="fa-solid fa-bullhorn"></i> Announcements
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <a href="{{ url_for('student_logout') }}" class="slink slink-danger">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="portal-main">
+        <div class="portal-topbar">
+            <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="topbar-title">{% block topbar_title %}Student Portal{% endblock %}</div>
+            <div style="font-size:0.8rem;color:var(--muted)" id="live-clock"></div>
+        </div>
+        <div class="portal-content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</div>
+
+<div class="toast-container"></div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

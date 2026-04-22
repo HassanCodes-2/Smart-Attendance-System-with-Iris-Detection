@@ -1,0 +1,62 @@
+{% extends "admin/base.html" %}
+{% block title %}Register Student{% endblock %}
+{% block topbar_title %}Register New Student{% endblock %}
+
+{% block content %}
+<div style="max-width:600px">
+
+    <div class="tip-box" style="margin-bottom:1.5rem">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>The student must be physically present. Fill in their details, then capture their iris scan to complete registration.</span>
+    </div>
+
+    <div class="card">
+        <!-- Progress -->
+        <div class="form-progress" id="form-progress">
+            <div class="fp-step active" id="fp1"><div class="fp-dot">1</div><span>Details</span></div>
+            <div class="fp-line" id="fp-line1"></div>
+            <div class="fp-step" id="fp2"><div class="fp-dot">2</div><span>Iris Scan</span></div>
+            <div class="fp-line" id="fp-line2"></div>
+            <div class="fp-step" id="fp3"><div class="fp-dot">3</div><span>Done</span></div>
+        </div>
+
+        <div class="card-title"><i class="fa-solid fa-user-shield"></i> Student Details</div>
+
+        <div class="input-group">
+            <input type="text" id="userIdInput" placeholder="Student ID (e.g. CS-009)" autocomplete="off">
+            <i class="fa-solid fa-id-badge"></i>
+        </div>
+        <div class="input-group">
+            <input type="text" id="nameInput" placeholder="Full Name" autocomplete="off">
+            <i class="fa-solid fa-user"></i>
+        </div>
+        <div class="input-group">
+            <input type="text" id="departmentInput" placeholder="Department" autocomplete="off">
+            <i class="fa-solid fa-building"></i>
+        </div>
+        <div class="input-group">
+            <input type="text" id="parentEmailInput" placeholder="Parent / Guardian Email (optional)" autocomplete="off">
+            <i class="fa-solid fa-envelope"></i>
+        </div>
+        <div class="input-group" style="margin-bottom:1.5rem">
+            <input type="password" id="passwordInput" placeholder="Set Login Password for Student" autocomplete="off">
+            <i class="fa-solid fa-lock"></i>
+        </div>
+
+        <div class="tip-box">
+            <i class="fa-solid fa-eye"></i>
+            <span>Ask the student to look directly at the camera. Ensure good lighting. The iris scan confirms their identity.</span>
+        </div>
+
+        <div class="camera-wrapper">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas" style="display:none"></canvas>
+            <div class="scan-line"></div>
+        </div>
+
+        <button id="captureBtn" data-type="admin-register" class="btn-full">
+            <i class="fa-solid fa-camera"></i> Capture Iris &amp; Register
+        </button>
+    </div>
+</div>
+{% endblock %}

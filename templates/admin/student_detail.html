@@ -1,0 +1,95 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ user['name'] }}{% endblock %}
+{% block topbar_title %}Student Detail{% endblock %}
+
+{% block content %}
+
+<a href="{{ url_for('admin_students') }}" class="btn btn-secondary btn-sm" style="margin-bottom:1.5rem">
+    <i class="fa-solid fa-arrow-left"></i> Back to Students
+</a>
+
+<div class="student-header">
+    <div class="student-avatar">{{ user['name'][0].upper() }}</div>
+    <div>
+        <h2 style="font-size:1.6rem;margin-bottom:0.2rem">{{ user['name'] }}</h2>
+        <p style="margin:0;font-size:0.9rem">
+            <span class="td-id">{{ user['user_id'] }}</span> &nbsp;·&nbsp;
+            <span style="color:var(--muted)">{{ user['department'] }}</span>
+            {% if user['parent_email'] %}
+            &nbsp;·&nbsp; <i class="fa-solid fa-envelope" style="color:var(--accent);font-size:0.8rem"></i>
+            <span style="color:var(--muted);font-size:0.85rem">{{ user['parent_email'] }}</span>
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+        <div><div class="stat-value">{{ present }}</div><div class="stat-label">Present</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon orange"><i class="fa-solid fa-clock"></i></div>
+        <div><div class="stat-value">{{ late }}</div><div class="stat-label">Late</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon purple"><i class="fa-solid fa-calendar-days"></i></div>
+        <div><div class="stat-value">{{ total }}</div><div class="stat-label">Total Days</div></div>
+    </div>
+    <div class="stat-card">
+        {% set pct = user_sum.percentage if user_sum else 0 %}
+        <div class="stat-icon {% if pct < 75 %}pink{% else %}green{% endif %}">
+            <i class="fa-solid fa-percent"></i>
+        </div>
+        <div>
+            <div class="stat-value {% if pct < 75 %}text-danger{% endif %}">{{ pct }}%</div>
+            <div class="stat-label">Attendance Rate</div>
+        </div>
+    </div>
+</div>
+
+<!-- Rate bar -->
+<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem">
+    {% set pct = user_sum.percentage if user_sum else 0 %}
+    <div style="display:flex;justify-content:space-between;margin-bottom:0.6rem;font-size:0.85rem">
+        <span style="font-weight:600">Attendance Rate</span>
+        <span style="color:{% if pct < 75 %}var(--error){% else %}var(--success){% endif %};font-weight:700">{{ pct }}%</span>
+    </div>
+    <div style="height:8px;background:rgba(255,255,255,0.08);border-radius:999px;overflow:hidden">
+        <div style="height:100%;width:{{ pct }}%;background:{% if pct < 75 %}var(--error){% elif pct < 85 %}var(--warning){% else %}var(--success){% endif %};border-radius:999px"></div>
+    </div>
+</div>
+
+<!-- Calendar -->
+<h3 style="font-size:1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:0.6rem">
+    <i class="fa-regular fa-calendar" style="color:var(--accent)"></i> Attendance Calendar
+</h3>
+<div style="display:flex;gap:1.25rem;flex-wrap:wrap;margin-bottom:1rem;font-size:0.78rem;color:var(--muted)">
+    <span><span class="cal-dot present"></span> Present</span>
+    <span><span class="cal-dot late"></span> Late</span>
+    <span><span class="cal-dot absent"></span> Absent</span>
+    <span><span class="cal-dot future"></span> Upcoming</span>
+</div>
+<div class="cal-grid-wrap">
+    {% for month in calendar %}
+    <div class="cal-month-card">
+        <div class="cal-month-title">{{ month.name }}</div>
+        <div class="cal-dow-row">
+            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+        </div>
+        <div class="cal-days-grid">
+            {% for week in month.weeks %}
+                {% for cell in week %}
+                    {% if cell is none %}
+                    <div class="cal-cell empty"></div>
+                    {% else %}
+                    <div class="cal-cell {{ cell.status }}{% if cell.is_today %} today{% endif %}"
+                         title="{{ cell.date }} — {{ cell.status|capitalize }}">{{ cell.day }}</div>
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

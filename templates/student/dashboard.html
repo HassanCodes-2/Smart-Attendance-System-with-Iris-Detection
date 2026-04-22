@@ -1,0 +1,136 @@
+{% extends "student/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block topbar_title %}My Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Greeting -->
+<div class="student-greeting">
+    <div>
+        <h2 style="font-size:1.6rem;margin-bottom:0.2rem">
+            👋 Hello, {{ student['name'].split()[0] }}!
+        </h2>
+        <p style="margin:0;color:var(--muted)">{{ today }}</p>
+    </div>
+    {% if marked_today %}
+    <span class="badge badge-success" style="font-size:0.85rem;padding:0.5rem 1rem">
+        <i class="fa-solid fa-circle-check"></i> Attendance Marked Today
+    </span>
+    {% else %}
+    <a href="{{ url_for('student_attendance') }}" class="btn btn-sm btn-purple">
+        <i class="fa-solid fa-eye"></i> Mark Attendance
+    </a>
+    {% endif %}
+</div>
+
+<!-- Notifications -->
+{% if notifications %}
+<div style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.5rem">
+    {% for n in notifications %}
+    <div class="notif notif-{{ n.type }}">
+        <i class="fa-solid {% if n.type=='error' %}fa-circle-xmark{% elif n.type=='warning' %}fa-triangle-exclamation{% elif n.type=='success' %}fa-circle-check{% else %}fa-circle-info{% endif %}"></i>
+        {{ n.msg }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Stats -->
+<div class="stats-row" style="margin-bottom:1.75rem">
+    <div class="stat-card">
+        <div class="stat-icon {% if user_sum and user_sum.percentage < 75 %}pink{% else %}green{% endif %}">
+            <i class="fa-solid fa-percent"></i>
+        </div>
+        <div>
+            <div class="stat-value {% if user_sum and user_sum.percentage < 75 %}text-danger{% endif %}">
+                {{ user_sum.percentage if user_sum else 0 }}%
+            </div>
+            <div class="stat-label">Attendance Rate</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon orange"><i class="fa-solid fa-fire"></i></div>
+        <div><div class="stat-value">{{ streak }}</div><div class="stat-label">Day Streak 🔥</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon purple"><i class="fa-solid fa-calendar-check"></i></div>
+        <div>
+            <div class="stat-value">{{ user_sum.present_days if user_sum else 0 }}</div>
+            <div class="stat-label">Days Present</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="fa-solid fa-building"></i></div>
+        <div>
+            <div class="stat-value" style="font-size:0.95rem;line-height:1.3">{{ student['department'][:12] }}…</div>
+            <div class="stat-label">Department</div>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance rate bar -->
+{% set pct = user_sum.percentage if user_sum else 0 %}
+<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem">
+    <div style="display:flex;justify-content:space-between;margin-bottom:0.6rem;font-size:0.85rem">
+        <span style="font-weight:600">Attendance Rate</span>
+        <span style="color:{% if pct < 75 %}var(--error){% elif pct < 85 %}var(--warning){% else %}var(--success){% endif %};font-weight:700">{{ pct }}% {% if pct >= 75 %}✓{% else %}⚠️{% endif %}</span>
+    </div>
+    <div style="height:10px;background:rgba(255,255,255,0.08);border-radius:999px;overflow:hidden;position:relative">
+        <div style="height:100%;width:{{ pct }}%;background:{% if pct < 75 %}var(--error){% elif pct < 85 %}var(--warning){% else %}var(--success){% endif %};border-radius:999px;transition:width 0.8s ease"></div>
+        <!-- 75% marker -->
+        <div style="position:absolute;top:0;bottom:0;left:75%;width:2px;background:rgba(255,255,255,0.3)"></div>
+    </div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:0.5rem;display:flex;justify-content:space-between">
+        <span>0%</span>
+        <span style="color:rgba(255,255,255,0.4)">▲ 75% minimum</span>
+        <span>100%</span>
+    </div>
+</div>
+
+<div class="dash-bottom-row">
+    <!-- Today's timetable -->
+    <div class="dash-card" style="flex:1.5">
+        <div class="dash-card-header">
+            <span><i class="fa-solid fa-calendar-day" style="color:var(--accent)"></i> Today's Classes</span>
+            <a href="{{ url_for('student_timetable') }}" class="btn btn-sm btn-secondary">Full Schedule</a>
+        </div>
+        {% if today_tt %}
+            {% for c in today_tt %}
+            <div class="tt-class-row">
+                <div class="tt-class-time">{{ c.start_time }}<br><span>{{ c.end_time }}</span></div>
+                <div style="flex:1">
+                    <div style="font-weight:600;color:var(--text)">{{ c.subject }}</div>
+                    <div style="font-size:0.75rem;color:var(--muted)">
+                        {% if c.instructor %}<i class="fa-solid fa-chalkboard-user"></i> {{ c.instructor }}{% endif %}
+                        {% if c.room %} · <i class="fa-solid fa-door-open"></i> {{ c.room }}{% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div style="text-align:center;padding:2rem;color:var(--muted)">
+                <i class="fa-regular fa-face-smile" style="font-size:2rem;display:block;margin-bottom:0.5rem;opacity:0.4"></i>
+                No classes scheduled today.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Announcements -->
+    <div class="dash-card" style="flex:1">
+        <div class="dash-card-header">
+            <span><i class="fa-solid fa-bullhorn" style="color:var(--accent-2)"></i> Announcements</span>
+            <a href="{{ url_for('student_announcements') }}" class="btn btn-sm btn-secondary">View all</a>
+        </div>
+        {% for ann in announcements %}
+        <div style="padding:0.75rem 0;border-bottom:1px solid var(--border)">
+            <div style="font-weight:600;color:var(--text);font-size:0.88rem">{{ ann.title }}</div>
+            <div style="font-size:0.78rem;color:var(--muted);margin-top:0.2rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ ann.body }}</div>
+            <div style="font-size:0.72rem;color:var(--muted);margin-top:0.2rem">{{ ann.created_at[:10] }}</div>
+        </div>
+        {% else %}
+        <div style="text-align:center;padding:2rem;color:var(--muted)">No announcements yet.</div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

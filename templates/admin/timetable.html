@@ -1,0 +1,163 @@
+{% extends "admin/base.html" %}
+{% block title %}Timetable{% endblock %}
+{% block topbar_title %}Timetable Management{% endblock %}
+
+{% block content %}
+
+<div class="admin-header">
+    <h2><i class="fa-solid fa-calendar-days"></i> Timetable</h2>
+    <div class="admin-tools">
+        <select id="dept-filter" class="filter-select" onchange="filterDept(this.value)">
+            <option value="">All Departments</option>
+            {% for d in departments %}
+            <option value="{{ d }}" {% if filter_dept == d %}selected{% endif %}>{{ d }}</option>
+            {% endfor %}
+        </select>
+        <button class="btn btn-sm" onclick="openModal()">
+            <i class="fa-solid fa-plus"></i> Add Slot
+        </button>
+    </div>
+</div>
+
+{% if grouped %}
+    {% for dept, days_data in grouped.items() %}
+    <div class="tt-dept-section">
+        <div class="tt-dept-header">
+            <i class="fa-solid fa-building"></i> {{ dept }}
+        </div>
+        <div class="tt-week-grid">
+            {% for day in ['Monday','Tuesday','Wednesday','Thursday','Friday'] %}
+            {% if days_data.get(day) %}
+            <div class="tt-day-col">
+                <div class="tt-day-title">{{ day }}</div>
+                {% for e in days_data[day] %}
+                <div class="tt-slot">
+                    <div class="tt-slot-time">{{ e.start_time }} – {{ e.end_time }}</div>
+                    <div class="tt-slot-subject">{{ e.subject }}</div>
+                    {% if e.instructor %}<div class="tt-slot-meta"><i class="fa-solid fa-chalkboard-user"></i> {{ e.instructor }}</div>{% endif %}
+                    {% if e.room %}<div class="tt-slot-meta"><i class="fa-solid fa-door-open"></i> {{ e.room }}</div>{% endif %}
+                    <button class="tt-delete-btn" onclick="deleteSlot({{ e.id }}, this)" title="Delete">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div style="text-align:center;padding:3rem;color:var(--muted)">
+        <i class="fa-solid fa-calendar-xmark" style="font-size:3rem;opacity:0.3;display:block;margin-bottom:1rem"></i>
+        No timetable entries yet. Add the first slot.
+    </div>
+{% endif %}
+
+
+<!-- Add Slot Modal -->
+<div id="tt-modal" class="modal-overlay hidden" onclick="closeModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+            <h3 style="display:flex;align-items:center;gap:0.6rem;font-size:1.15rem">
+                <i class="fa-solid fa-plus" style="color:var(--accent)"></i> Add Timetable Slot
+            </h3>
+            <button class="btn btn-sm btn-secondary" onclick="closeModal()" style="padding:0.4rem 0.75rem"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="tt-error" class="hidden" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:var(--radius-sm);padding:0.75rem;margin-bottom:1rem;font-size:0.875rem;color:var(--error)"></div>
+
+        <div class="input-group">
+            <select id="tt-dept" style="padding:0.875rem 1rem;padding-left:2.75rem;background:rgba(8,13,26,0.7);border:1px solid var(--border-bright);color:var(--text);border-radius:var(--radius);width:100%;font-family:inherit;font-size:0.95rem">
+                <option value="">Select Department</option>
+                {% for d in departments %}<option value="{{ d }}">{{ d }}</option>{% endfor %}
+            </select>
+            <i class="fa-solid fa-building"></i>
+        </div>
+        <div class="input-group">
+            <select id="tt-day" style="padding:0.875rem 1rem;padding-left:2.75rem;background:rgba(8,13,26,0.7);border:1px solid var(--border-bright);color:var(--text);border-radius:var(--radius);width:100%;font-family:inherit;font-size:0.95rem">
+                {% for i, d in enumerate(days) %}<option value="{{ i }}">{{ d }}</option>{% endfor %}
+            </select>
+            <i class="fa-solid fa-calendar"></i>
+        </div>
+        <div class="input-group">
+            <input type="text" id="tt-subject" placeholder="Subject Name">
+            <i class="fa-solid fa-book"></i>
+        </div>
+        <div class="input-group">
+            <input type="text" id="tt-instructor" placeholder="Instructor (optional)">
+            <i class="fa-solid fa-chalkboard-user"></i>
+        </div>
+        <div class="input-group">
+            <input type="text" id="tt-room" placeholder="Room / Location (optional)">
+            <i class="fa-solid fa-door-open"></i>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1.5rem">
+            <div class="input-group" style="margin-bottom:0">
+                <input type="time" id="tt-start" style="padding:0.875rem 1rem;padding-left:2.75rem">
+                <i class="fa-regular fa-clock"></i>
+            </div>
+            <div class="input-group" style="margin-bottom:0">
+                <input type="time" id="tt-end" style="padding:0.875rem 1rem;padding-left:2.75rem">
+                <i class="fa-solid fa-clock"></i>
+            </div>
+        </div>
+        <div style="display:flex;gap:0.75rem">
+            <button class="btn btn-full" id="tt-save-btn" onclick="saveSlot()">
+                <i class="fa-solid fa-floppy-disk"></i> Save Slot
+            </button>
+            <button class="btn btn-secondary" onclick="closeModal()" style="padding:0.875rem 1.5rem;white-space:nowrap">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterDept(val) {
+    var url = new URL(window.location.href);
+    val ? url.searchParams.set('dept', val) : url.searchParams.delete('dept');
+    window.location.href = url.toString();
+}
+function openModal() { document.getElementById('tt-modal').classList.remove('hidden'); }
+function closeModal(e) {
+    if (!e || e.target === document.getElementById('tt-modal'))
+        document.getElementById('tt-modal').classList.add('hidden');
+}
+function saveSlot() {
+    var dept    = document.getElementById('tt-dept').value;
+    var day     = document.getElementById('tt-day').value;
+    var subject = document.getElementById('tt-subject').value.trim();
+    var start   = document.getElementById('tt-start').value;
+    var end     = document.getElementById('tt-end').value;
+    var errEl   = document.getElementById('tt-error');
+
+    if (!dept || !subject || !start || !end) {
+        errEl.textContent = 'Department, subject, start and end time are required.';
+        errEl.classList.remove('hidden'); return;
+    }
+    errEl.classList.add('hidden');
+    var btn = document.getElementById('tt-save-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
+
+    fetch('/admin/timetable/add', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            department: dept, day_of_week: day, subject: subject,
+            instructor: document.getElementById('tt-instructor').value.trim(),
+            room: document.getElementById('tt-room').value.trim(),
+            start_time: start, end_time: end
+        })
+    }).then(r => r.json()).then(d => {
+        if (d.success) { showToast('Slot added.', 'success'); setTimeout(() => window.location.reload(), 800); }
+        else { errEl.textContent = d.message || 'Error.'; errEl.classList.remove('hidden'); }
+    }).finally(() => { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Slot'; });
+}
+function deleteSlot(id, btn) {
+    if (!confirm('Delete this slot?')) return;
+    btn.disabled = true;
+    fetch('/admin/timetable/delete/' + id, { method: 'POST' })
+        .then(r => r.json()).then(d => {
+            if (d.success) { showToast('Slot deleted.', 'info'); btn.closest('.tt-slot').remove(); }
+        });
+}
+</script>
+{% endblock %}

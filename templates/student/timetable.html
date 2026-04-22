@@ -1,0 +1,50 @@
+{% extends "student/base.html" %}
+{% block title %}Timetable{% endblock %}
+{% block topbar_title %}My Timetable{% endblock %}
+
+{% block content %}
+
+<div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem">
+    <h2 style="font-size:1.25rem;display:flex;align-items:center;gap:0.6rem">
+        <i class="fa-solid fa-calendar-days" style="color:var(--accent)"></i>
+        {{ student['department'] }} — Weekly Schedule
+    </h2>
+</div>
+
+{% set has_any = namespace(val=false) %}
+{% for day in days %}{% if by_day[day] %}{% set has_any.val = true %}{% endif %}{% endfor %}
+
+{% if has_any.val %}
+<div class="student-tt-grid">
+    {% for day in days %}
+    {% if by_day[day] %}
+    <div class="student-tt-day {% if today_name == day %}tt-today{% endif %}">
+        <div class="student-tt-day-header">
+            {{ day }}
+            {% if today_name == day %}
+            <span class="badge badge-success" style="font-size:0.65rem;padding:0.2rem 0.5rem">Today</span>
+            {% endif %}
+        </div>
+        {% for e in by_day[day] %}
+        <div class="student-tt-slot">
+            <div class="student-tt-time">{{ e.start_time }} – {{ e.end_time }}</div>
+            <div class="student-tt-subject">{{ e.subject }}</div>
+            <div class="student-tt-meta">
+                {% if e.instructor %}<span><i class="fa-solid fa-chalkboard-user"></i> {{ e.instructor }}</span>{% endif %}
+                {% if e.room %}<span><i class="fa-solid fa-door-open"></i> {{ e.room }}</span>{% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+{% else %}
+<div style="text-align:center;padding:3rem;color:var(--muted)">
+    <i class="fa-solid fa-calendar-xmark" style="font-size:3rem;opacity:0.3;display:block;margin-bottom:1rem"></i>
+    No timetable available for your department yet.<br>
+    Please check back later or contact the admin.
+</div>
+{% endif %}
+
+{% endblock %}

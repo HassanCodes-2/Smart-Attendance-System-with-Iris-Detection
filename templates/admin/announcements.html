@@ -1,0 +1,108 @@
+{% extends "admin/base.html" %}
+{% block title %}Announcements{% endblock %}
+{% block topbar_title %}Announcements{% endblock %}
+
+{% block content %}
+
+<div class="admin-header">
+    <h2><i class="fa-solid fa-bullhorn"></i> Announcements</h2>
+    <button class="btn btn-sm" onclick="openModal()"><i class="fa-solid fa-plus"></i> New Announcement</button>
+</div>
+
+<div class="ann-list">
+    {% for a in announcements %}
+    <div class="ann-card" id="ann-{{ a.id }}">
+        <div class="ann-top">
+            <div>
+                <div class="ann-title">{{ a.title }}</div>
+                <div class="ann-meta">
+                    <span class="badge {% if a.target == 'all' %}badge-success{% else %}badge-dept{% endif %}">
+                        <i class="fa-solid {% if a.target == 'all' %}fa-globe{% else %}fa-building{% endif %}" style="font-size:0.65rem"></i>
+                        {{ 'All Departments' if a.target == 'all' else a.target }}
+                    </span>
+                    <span style="color:var(--muted);font-size:0.75rem">{{ a.created_at[:16] }}</span>
+                </div>
+            </div>
+            <button class="btn btn-sm btn-danger" onclick="deleteAnn({{ a.id }}, this)">
+                <i class="fa-solid fa-trash"></i>
+            </button>
+        </div>
+        <div class="ann-body">{{ a.body }}</div>
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:3rem;color:var(--muted)">
+        <i class="fa-solid fa-bullhorn" style="font-size:3rem;opacity:0.3;display:block;margin-bottom:1rem"></i>
+        No announcements yet. Post one to notify students.
+    </div>
+    {% endfor %}
+</div>
+
+
+<!-- Modal -->
+<div id="ann-modal" class="modal-overlay hidden" onclick="closeModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+            <h3 style="font-size:1.15rem;display:flex;align-items:center;gap:0.6rem">
+                <i class="fa-solid fa-bullhorn" style="color:var(--accent-2)"></i> New Announcement
+            </h3>
+            <button class="btn btn-sm btn-secondary" onclick="closeModal()" style="padding:0.4rem 0.75rem"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="ann-error" class="hidden" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:var(--radius-sm);padding:0.75rem;margin-bottom:1rem;font-size:0.875rem;color:var(--error)"></div>
+
+        <div class="input-group">
+            <input type="text" id="ann-title" placeholder="Announcement Title">
+            <i class="fa-solid fa-heading"></i>
+        </div>
+        <div class="input-group">
+            <select id="ann-target" style="padding:0.875rem 1rem;padding-left:2.75rem;background:rgba(8,13,26,0.7);border:1px solid var(--border-bright);color:var(--text);border-radius:var(--radius);width:100%;font-family:inherit;font-size:0.95rem;margin-bottom:0">
+                <option value="all">All Departments</option>
+                {% for d in departments %}<option value="{{ d }}">{{ d }}</option>{% endfor %}
+            </select>
+            <i class="fa-solid fa-users"></i>
+        </div>
+        <div style="margin-bottom:1.5rem">
+            <textarea id="ann-body" placeholder="Write the announcement message…"
+                      style="width:100%;min-height:120px;padding:0.875rem 1rem;background:rgba(8,13,26,0.7);border:1px solid var(--border-bright);color:var(--text);border-radius:var(--radius);font-family:inherit;font-size:0.95rem;resize:vertical;line-height:1.6"></textarea>
+        </div>
+        <div style="display:flex;gap:0.75rem">
+            <button class="btn btn-full btn-purple" id="ann-save-btn" onclick="saveAnn()">
+                <i class="fa-solid fa-paper-plane"></i> Post Announcement
+            </button>
+            <button class="btn btn-secondary" onclick="closeModal()" style="padding:0.875rem 1.5rem;white-space:nowrap">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openModal() { document.getElementById('ann-modal').classList.remove('hidden'); }
+function closeModal(e) {
+    if (!e || e.target === document.getElementById('ann-modal'))
+        document.getElementById('ann-modal').classList.add('hidden');
+}
+function saveAnn() {
+    var title  = document.getElementById('ann-title').value.trim();
+    var body   = document.getElementById('ann-body').value.trim();
+    var target = document.getElementById('ann-target').value;
+    var errEl  = document.getElementById('ann-error');
+    if (!title || !body) { errEl.textContent = 'Title and body are required.'; errEl.classList.remove('hidden'); return; }
+    errEl.classList.add('hidden');
+    var btn = document.getElementById('ann-save-btn');
+    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Posting…';
+    fetch('/admin/announcements/add', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, body, target })
+    }).then(r => r.json()).then(d => {
+        if (d.success) { showToast('Announcement posted.', 'success'); setTimeout(() => window.location.reload(), 800); }
+        else { errEl.textContent = d.message; errEl.classList.remove('hidden'); }
+    }).finally(() => { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Post Announcement'; });
+}
+function deleteAnn(id, btn) {
+    if (!confirm('Delete this announcement?')) return;
+    btn.disabled = true;
+    fetch('/admin/announcements/delete/' + id, { method: 'POST' })
+        .then(r => r.json()).then(d => {
+            if (d.success) { document.getElementById('ann-' + id).remove(); showToast('Deleted.', 'info'); }
+        });
+}
+</script>
+{% endblock %}

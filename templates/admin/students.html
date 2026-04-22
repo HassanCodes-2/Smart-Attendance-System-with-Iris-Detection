@@ -1,0 +1,100 @@
+{% extends "admin/base.html" %}
+{% block title %}Students{% endblock %}
+{% block topbar_title %}Students{% endblock %}
+
+{% block content %}
+
+<div class="admin-header">
+    <h2><i class="fa-solid fa-users"></i> All Students</h2>
+    <div class="admin-tools">
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="search" id="s-search" placeholder="Search name or ID…">
+        </div>
+        <select id="s-dept" class="filter-select">
+            <option value="">All Departments</option>
+            {% for d in departments %}
+            <option value="{{ d }}">{{ d }}</option>
+            {% endfor %}
+        </select>
+        <a href="{{ url_for('admin_register') }}" class="btn btn-sm">
+            <i class="fa-solid fa-user-plus"></i> Register Student
+        </a>
+    </div>
+</div>
+
+<div class="student-cards" id="student-grid">
+    {% for s in students %}
+    <div class="student-card" data-name="{{ s.name|lower }}" data-id="{{ s.user_id|lower }}" data-dept="{{ s.department }}">
+        <div class="sc-top">
+            <div class="sc-avatar">{{ s.name[0] }}</div>
+            <div>
+                <div class="sc-name">{{ s.name }}</div>
+                <div class="sc-meta">{{ s.user_id }} · {{ s.department }}</div>
+            </div>
+            <div class="sc-pct {% if s.percentage < 75 %}sc-pct-danger{% elif s.percentage < 85 %}sc-pct-warn{% else %}sc-pct-ok{% endif %}">
+                {{ s.percentage }}%
+            </div>
+        </div>
+        <div class="sc-bar">
+            <div class="sc-bar-fill {% if s.percentage < 75 %}bar-danger{% elif s.percentage < 85 %}bar-warn{% else %}bar-ok{% endif %}"
+                 style="width:{{ s.percentage }}%"></div>
+        </div>
+        {% if s.parent_email %}
+        <div class="sc-email"><i class="fa-solid fa-envelope"></i> {{ s.parent_email }}</div>
+        {% endif %}
+        <div class="sc-actions">
+            <a href="{{ url_for('admin_student_detail', uid=s.id) }}" class="btn btn-sm btn-secondary">
+                <i class="fa-solid fa-chart-line"></i> View History
+            </a>
+            <button class="btn btn-sm btn-danger"
+                    onclick="deleteStudent({{ s.id }}, '{{ s.name }}', this)">
+                <i class="fa-solid fa-trash"></i> Delete
+            </button>
+        </div>
+    </div>
+    {% else %}
+    <div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--muted)">
+        <i class="fa-solid fa-users-slash" style="font-size:3rem;opacity:0.3;display:block;margin-bottom:1rem"></i>
+        No students registered yet.
+        <a href="{{ url_for('admin_register') }}" style="color:#a5b4fc;display:block;margin-top:0.5rem">Register the first student →</a>
+    </div>
+    {% endfor %}
+</div>
+<p id="s-count" style="font-size:0.8rem;color:var(--muted);text-align:center;margin-top:1rem"></p>
+
+<script>
+var cards = document.querySelectorAll('.student-card');
+
+function filterCards() {
+    var q    = document.getElementById('s-search').value.toLowerCase().trim();
+    var dept = document.getElementById('s-dept').value;
+    var vis  = 0;
+    cards.forEach(function(c) {
+        var matchQ = !q || c.dataset.name.includes(q) || c.dataset.id.includes(q);
+        var matchD = !dept || c.dataset.dept === dept;
+        c.style.display = (matchQ && matchD) ? '' : 'none';
+        if (matchQ && matchD) vis++;
+    });
+    document.getElementById('s-count').textContent =
+        (q || dept) ? 'Showing ' + vis + ' of ' + cards.length + ' students' : '';
+}
+
+document.getElementById('s-search').addEventListener('input', filterCards);
+document.getElementById('s-dept').addEventListener('change', filterCards);
+
+function deleteStudent(uid, name, btn) {
+    if (!confirm('Delete "' + name + '" and all their records?\n\nThis cannot be undone.')) return;
+    btn.disabled = true;
+    fetch('/admin/delete-student/' + uid, { method: 'POST' })
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) {
+                btn.closest('.student-card').style.opacity = '0';
+                setTimeout(() => btn.closest('.student-card').remove(), 300);
+                showToast(name + ' deleted.', 'info');
+            } else { showToast(d.message || 'Error.', 'error'); btn.disabled = false; }
+        });
+}
+</script>
+{% endblock %}
