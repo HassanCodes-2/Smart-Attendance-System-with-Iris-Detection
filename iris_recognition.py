@@ -31,24 +31,29 @@ def extract_features(image, return_annotated=False):
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     eyes = eye_cascade.detectMultiScale(gray, 1.3, 5)
-    
+
     annotated_img = image.copy()
-
     for (ex, ey, ew, eh) in eyes:
-
         cv2.rectangle(annotated_img, (ex, ey), (ex+ew, ey+eh), (0, 255, 0), 2)
-    
-    preprocessed = preprocess_image(image)
-    
-    orb = cv2.ORB_create(nfeatures=500)
-    
-    keypoints, descriptors = orb.detectAndCompute(preprocessed, None)
-    
+
+    # FIX: if no eyes detected, return None immediately — don't run ORB on a blank frame
     if return_annotated:
         _, buffer = cv2.imencode('.jpg', annotated_img)
         annotated_base64 = base64.b64encode(buffer).decode('utf-8')
+        if len(eyes) == 0:
+            return None, annotated_base64
+    else:
+        if len(eyes) == 0:
+            return None
+
+    preprocessed = preprocess_image(image)
+
+    orb = cv2.ORB_create(nfeatures=500)
+    keypoints, descriptors = orb.detectAndCompute(preprocessed, None)
+
+    if return_annotated:
         return descriptors, annotated_base64
-    
+
     return descriptors
 
 def verify_user(captured_features, stored_users, threshold=0.75):

@@ -194,6 +194,24 @@ def get_absent_users(date_str):
     return [dict(r) for r in rows]
 
 
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
+def _count_weekdays(start, end):
+    """Count Mon–Fri days between start and end inclusive (efficient)."""
+    if end < start:
+        return 0
+    total_days = (end - start).days + 1
+    full_weeks, remainder = divmod(total_days, 7)
+    count = full_weeks * 5
+    # Check the remaining days starting from 'start'
+    for i in range(remainder):
+        if (start + timedelta(days=i)).weekday() < 5:
+            count += 1
+    return count
+
+
+# ── Attendance summary ────────────────────────────────────────────────────────
+
 def get_attendance_summary():
     conn = get_db_connection()
     rows = conn.execute('''
@@ -211,7 +229,9 @@ def get_attendance_summary():
             created = datetime.strptime(r['created_at'][:10], '%Y-%m-%d').date()
         except Exception:
             created = today
-        total = max((today - created).days, 1)
+        # FIX: count only weekdays (Mon–Fri) as valid school days,
+        # not raw calendar days which include weekends
+        total = max(_count_weekdays(created, today), 1)
         present = r['present_days'] or 0
         r['percentage'] = min(round((present / total) * 100), 100)
         r['total_days'] = total
@@ -359,7 +379,7 @@ def delete_announcement(aid):
 # ── Student helpers ───────────────────────────────────────────────────────────
 
 def get_student_streak(uid):
-    """Count consecutive school days present (Mon-Fri)."""
+    """Count consecutive school days (Mon-Fri) the student has been present."""
     conn = get_db_connection()
     rows = conn.execute(
         "SELECT DISTINCT DATE(timestamp) AS d FROM attendance WHERE user_id=? ORDER BY d DESC",
@@ -369,8 +389,14 @@ def get_student_streak(uid):
     dates = {r['d'] for r in rows}
     streak = 0
     check = date.today()
+
+    # FIX: if today is a weekday but hasn't been marked yet, don't break the
+    # streak — start checking from yesterday instead
+    if check.weekday() < 5 and check.isoformat() not in dates:
+        check -= timedelta(days=1)
+
     while True:
-        if check.weekday() >= 5:
+        if check.weekday() >= 5:          # skip weekends
             check -= timedelta(days=1)
             continue
         if check.isoformat() in dates:
@@ -389,12 +415,11 @@ def get_student_notifications(uid, department):
     if s:
         pct = s['percentage']
         if pct < 75:
-            needed = 0
-            remaining = s['total_days']
-            # days needed to reach 75%
             present = s['present_days']
+            total   = s['total_days']
+            needed  = 0
             for extra in range(1, 60):
-                if round(((present + extra) / (remaining + extra)) * 100) >= 75:
+                if round(((present + extra) / (total + extra)) * 100) >= 75:
                     needed = extra
                     break
             notes.append({'type': 'error', 'msg': f'Your attendance is {pct}%. You need {needed} more days to reach 75%.'})

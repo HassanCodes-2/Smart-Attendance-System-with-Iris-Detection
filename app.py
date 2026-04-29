@@ -5,6 +5,7 @@ except ImportError:
     pass
 
 import os
+import re
 import threading
 import atexit
 import calendar as cal_mod
@@ -93,6 +94,11 @@ _h, _m = map(int, DUE_TIME_STR.split(':'))
 DUE_TIME = dtime(_h, _m)
 
 
+def normalize_student_id(raw_id):
+    """Strip non-alphanumeric characters and uppercase the student ID."""
+    return re.sub(r'[^A-Za-z0-9]', '', raw_id).upper()
+
+
 def attendance_status_now():
     return 'late' if datetime.now().time() > DUE_TIME else 'present'
 
@@ -111,7 +117,14 @@ def build_calendar(history, months_back=3):
         for day_n in range(1, days_in + 1):
             d     = date(y, m, day_n)
             d_str = d.isoformat()
-            status = 'future' if d > today else date_map.get(d_str, 'absent')
+            if d > today:
+                status = 'future'
+            elif d.weekday() >= 5:
+                # FIX: weekends are not school days — mark neutral,
+                # not 'absent', so they don't show red on the calendar
+                status = 'weekend'
+            else:
+                status = date_map.get(d_str, 'absent')
             flat.append({'day': day_n, 'date': d_str,
                          'status': status, 'is_today': d == today})
         while len(flat) % 7:
@@ -225,7 +238,7 @@ def admin_register():
         return render_template('admin/register.html')
 
     data         = request.json or {}
-    user_id      = (data.get('user_id') or '').strip()
+    user_id      = normalize_student_id((data.get('user_id') or '').strip())
     name         = (data.get('name')    or '').strip()
     department   = (data.get('department') or '').strip()
     parent_email = (data.get('parent_email') or '').strip() or None
@@ -235,19 +248,23 @@ def admin_register():
     if not all([user_id, name, department, password, image_data]):
         return jsonify({'success': False, 'message': 'All fields are required.'}), 400
 
+    if get_user_by_user_id(user_id):
+        return jsonify({'success': False, 'message': f'Student ID "{user_id}" is already registered.'}), 400
+
     try:
         img = decode_image(image_data)
         features, annotated = extract_features(img, return_annotated=True)
+
         if features is None:
-            return jsonify({'success': False, 'message': 'No iris detected. Try again.'}), 400
+            return jsonify({'success': False, 'message': 'No iris detected. Please ensure the student is looking at the camera.'}), 400
 
         hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
         add_user(user_id, name, department, features, parent_email, hashed)
-        return jsonify({'success': True, 'message': f'{name} registered successfully!',
+        return jsonify({'success': True, 'message': f'{name} registered successfully! (ID: {user_id})',
                         'annotated_image': annotated})
     except Exception as e:
         print(f"Register error: {e}")
-        return jsonify({'success': False, 'message': 'Server error. User ID may already exist.'}), 500
+        return jsonify({'success': False, 'message': 'Server error. Please try again.'}), 500
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -324,7 +341,6 @@ def admin_attendance():
 def admin_timetable():
     filter_dept = request.args.get('dept', '')
     entries     = get_timetable(filter_dept or None)
-    # Group by department → day
     grouped = {}
     for e in entries:
         d = e['department']
@@ -400,7 +416,7 @@ def student_login():
         return redirect(url_for('student_dashboard'))
     error = None
     if request.method == 'POST':
-        uid      = request.form.get('user_id', '').strip().upper()
+        uid      = normalize_student_id(request.form.get('user_id', ''))
         password = request.form.get('password', '')
         user     = get_user_by_user_id(uid)
         if user and user['password'] and bcrypt.checkpw(password.encode(), user['password'].encode()):
@@ -472,7 +488,11 @@ def student_mark_attendance():
         img = decode_image(image_data)
         captured, annotated = extract_features(img, return_annotated=True)
 
-        # Verify iris against only this student
+        if captured is None:
+            return jsonify({'success': False,
+                            'message': 'No iris detected. Please look directly at the camera.',
+                            'annotated_image': annotated}), 400
+
         user_dict = {
             'id':           student['id'],
             'user_id':      student['user_id'],
@@ -483,7 +503,7 @@ def student_mark_attendance():
         }
         matched, score = verify_user(captured, [user_dict])
 
-        if matched:
+        if matched and matched['id'] == student['id']:
             status = attendance_status_now()
             mark_attendance(student['id'], status)
 
@@ -536,7 +556,6 @@ def student_calendar():
 def student_timetable():
     student = current_student()
     entries = get_timetable(student['department'])
-    # Group by day
     by_day = {day: [] for day in DAYS[:5]}
     for e in entries:
         day_name = DAYS[e['day_of_week']]
